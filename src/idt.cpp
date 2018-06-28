@@ -22,7 +22,7 @@ struct Pointer idtp;
 
 extern "C" void IDT_Load();
 
-static void SetGate(unsigned char num, unsigned long base, unsigned short sel, unsigned char flags)
+void IDT::SetGate(unsigned char num, unsigned long base, unsigned short sel, unsigned char flags)
 {
 	idt[num].base_low = base & 0xFFFF;
 	idt[num].base_high = (base >> 16) & 0xFFFF;
