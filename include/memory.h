@@ -3,6 +3,7 @@
 
 #include <defs.h>
 
-void memset(void *dest, int data, size_t count);
+void *memset(void *dest, int val, size_t count);
+void *memcpy(void *dest, const void *src, size_t count);
 
 #endif
