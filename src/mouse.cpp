@@ -70,10 +70,10 @@ static void Handler(struct regs *r)
 			switch (Cursor[(cx - MouseX) + (cy - MouseY) * 11])
 			{
 			case 1:
-				framebuffer[cx + cy * 800] = 0;
+				framebuffer[cx + cy * 800] = 0xFFFFFF;
 				break;
 			case 2:
-				framebuffer[cx + cy * 800] = 0xFFFFFF;
+				framebuffer[cx + cy * 800] = 0;
 				break;
 			}
 			cx++;
