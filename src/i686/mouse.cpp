@@ -34,6 +34,7 @@ static unsigned int Buffer[11 * 16];
 
 static void Handler(struct regs *r)
 {
+	unsigned char status;
 	switch (Cycle)
 	{
 	case 0:

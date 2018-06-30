@@ -41,7 +41,7 @@ $(KERNEL): $(ASOURCES) $(CSOURCES) $(AOBJECTS) $(COBJECTS)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 qemu: $(ISO)
-	qemu-system-i386 -cdrom $(ISO)
+	qemu-system-i386 -cdrom $(ISO) -m 16
 
 clean:
 	rm -f $(ISO)

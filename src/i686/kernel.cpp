@@ -7,6 +7,7 @@
 #include <i686/idt.h>
 #include <i686/isr.h>
 #include <i686/irq.h>
+#include <i686/mm.h>
 
 unsigned int window[160 * 120];
 
@@ -21,6 +22,7 @@ extern "C" void kmain(multiboot_header *multiboot, unsigned int magic)
 	IRQ::Init();
 	Timer::Init();
 	Mouse::Init();
+	Memory::Init(multiboot->mem_upper + multiboot->mem_lower);
 
 	// -------
 	Graphics::FillRect(window, 160, 0, 0, 160, 120, 0xb0a090);
@@ -44,8 +46,8 @@ extern "C" void kmain(multiboot_header *multiboot, unsigned int magic)
 	Graphics::DrawChar(window, 160, 'x', 145, 3, 0x101010);
 	// -------
 
-	Graphics::DrawString(window, 160, "Hello, World!", 6, 4, 0xe0e0e0);
-	Graphics::DrawString(window, 160, "Simple window", 6, 25, 0x101010);
+	Graphics::DrawString(window, 160, "Title", 6, 4, 0xe0e0e0);
+	Graphics::DrawString(window, 160, "Text", 6, 25, 0x101010);
 
 	Graphics::DrawBuffer(window, 100, 100, 160, 120);
 
