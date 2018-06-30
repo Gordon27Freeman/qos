@@ -1,4 +1,4 @@
-#include <gdt.h>
+#include <i686/gdt.h>
 using namespace GDT;
 
 struct Entry

@@ -1,18 +1,20 @@
-CC	= i686-elf-g++
-LD	= i686-elf-gcc
+ARCH	= i686
+
+CC	= $(ARCH)-elf-g++
+LD	= $(ARCH)-elf-gcc
 AS	= nasm
 
 CCFLAGS	= -ffreestanding -fno-exceptions -fno-rtti -O2 $(CINCLUDES) $(CWARNINGS)
-LDFLAGS	= -T src/link.ld -ffreestanding -O2 -nostdlib -lgcc
+LDFLAGS	= -T src/$(ARCH)/link.ld -ffreestanding -O2 -nostdlib -lgcc
 ASFLAGS = -f elf
 
-CINCLUDES	= -Iinclude/
+CINCLUDES	= -Iinclude/ -Iinclude/$(ARCH)
 CWARNINGS	= -Wall -Wextra
 
-CSOURCES	= $(wildcard src/*.cpp)
+CSOURCES	= $(wildcard src/$(ARCH)/*.cpp src/*.cpp)
 COBJECTS	= $(CSOURCES:%.cpp=%.o)
 
-ASOURCES	= $(wildcard src/*.asm)
+ASOURCES	= $(wildcard src/$(ARCH)/*.asm src/*.asm)
 AOBJECTS	= $(ASOURCES:%.asm=%.ao)
 
 KERNEL	= quantumOS.elf

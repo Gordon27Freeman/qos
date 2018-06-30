@@ -1,5 +1,5 @@
-#include <graphics.h>
-#include <memory.h>
+#include <i686/graphics.h>
+#include <i686/memory.h>
 #include <font.h>
 using namespace Graphics;
 

@@ -1,8 +1,8 @@
-#include <mouse.h>
-#include <graphics.h>
-#include <regs.h>
-#include <irq.h>
-#include <pio.h>
+#include <i686/mouse.h>
+#include <i686/graphics.h>
+#include <i686/regs.h>
+#include <i686/irq.h>
+#include <i686/pio.h>
 using namespace Mouse;
 
 static unsigned int *framebuffer;

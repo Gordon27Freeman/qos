@@ -1,6 +1,6 @@
-#include <isr.h>
-#include <idt.h>
-#include <regs.h>
+#include <i686/isr.h>
+#include <i686/idt.h>
+#include <i686/regs.h>
 using namespace ISR;
 
 extern "C" void isr0();

@@ -1,5 +1,5 @@
-#include <idt.h>
-#include <memory.h>
+#include <i686/idt.h>
+#include <i686/memory.h>
 using namespace IDT;
 
 struct Entry

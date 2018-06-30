@@ -1,12 +1,12 @@
-#include <multiboot.h>
-#include <graphics.h>
-#include <memory.h>
-#include <mouse.h>
-#include <timer.h>
-#include <gdt.h>
-#include <idt.h>
-#include <isr.h>
-#include <irq.h>
+#include <i686/multiboot.h>
+#include <i686/graphics.h>
+#include <i686/memory.h>
+#include <i686/mouse.h>
+#include <i686/timer.h>
+#include <i686/gdt.h>
+#include <i686/idt.h>
+#include <i686/isr.h>
+#include <i686/irq.h>
 
 unsigned int window[160 * 120];
 

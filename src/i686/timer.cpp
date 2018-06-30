@@ -1,7 +1,7 @@
-#include <timer.h>
-#include <regs.h>
-#include <irq.h>
-#include <pio.h>
+#include <i686/timer.h>
+#include <i686/regs.h>
+#include <i686/irq.h>
+#include <i686/pio.h>
 using namespace Timer;
 
 static unsigned long long current_ticks;

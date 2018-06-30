@@ -1,6 +1,6 @@
-#include <irq.h>
-#include <idt.h>
-#include <pio.h>
+#include <i686/irq.h>
+#include <i686/idt.h>
+#include <i686/pio.h>
 using namespace IRQ;
 
 extern "C" void irq0();
