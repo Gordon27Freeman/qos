@@ -1,4 +1,5 @@
 #include <i686/multiboot.h>
+#include <i686/keyboard.h>
 #include <i686/graphics.h>
 #include <i686/memory.h>
 #include <i686/mouse.h>
@@ -20,6 +21,7 @@ extern "C" void kmain(multiboot_header *multiboot, unsigned int magic)
 	IDT::Init();
 	ISR::Init();
 	IRQ::Init();
+	Keyboard::Init();
 	Timer::Init();
 	Mouse::Init();
 	Memory::Init(multiboot->mem_upper + multiboot->mem_lower);
@@ -49,6 +51,7 @@ extern "C" void kmain(multiboot_header *multiboot, unsigned int magic)
 	Graphics::DrawString(window, 160, "Title", 6, 4, 0xe0e0e0);
 	Graphics::DrawString(window, 160, "Text", 6, 25, 0x101010);
 
+	// =======
 	Graphics::DrawBuffer(window, 100, 100, 160, 120);
 
 	while (1) asm volatile("hlt");

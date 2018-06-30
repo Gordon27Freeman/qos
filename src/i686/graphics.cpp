@@ -15,7 +15,7 @@ unsigned int *Graphics::GetFramebuffer()
 void Graphics::Init(unsigned long long addr)
 {
 	framebuffer = (unsigned int *)addr;
-	register unsigned int cx = 0;
+	register int cx = 0;
 	while (cx < 800 * 600)
 	{
 		framebuffer[cx] = 0x007b7b;
@@ -25,8 +25,8 @@ void Graphics::Init(unsigned long long addr)
 
 void Graphics::HorizontalLine(unsigned int *buffer, int bufferWidth, int x, int y, int length, unsigned int color)
 {
-	register unsigned int cx = x, l = x + length;
-	while (cx < l)
+	register int cx = x, l = x + length;
+	while (cx < l && cx < bufferWidth)
 	{
 		buffer[cx + y * bufferWidth] = color;
 		cx++;
@@ -36,7 +36,7 @@ void Graphics::HorizontalLine(unsigned int *buffer, int bufferWidth, int x, int 
 void Graphics::VerticalLine(unsigned int *buffer, int bufferWidth, int x, int y, int length, unsigned int color)
 {
 	register int cy = y, l = y + length;
-	while (cy < l)
+	if (x < bufferWidth) while (cy < l)
 	{
 		buffer[x + cy * bufferWidth] = color;
 		cy++;
@@ -56,7 +56,7 @@ void Graphics::FillRect(unsigned int *buffer, int bufferWidth, int x, int y, int
 	register int cy = y, cx = x, ly = y + h, lx = x + w;
 	while (cy < ly)
 	{
-		while (cx < lx)
+		while (cx < lx && cx < bufferWidth)
 		{
 			buffer[cx + cy * bufferWidth] = color;
 			cx++;
@@ -68,20 +68,24 @@ void Graphics::FillRect(unsigned int *buffer, int bufferWidth, int x, int y, int
 
 void Graphics::DrawBuffer(unsigned int *buffer, int x, int y, int w, int h)
 {
-	register int cy = y, l = y + h;
+	register int cy = y, l = y + h, width;
+	if ((x + w) < 800) width = w * 4;
+	else width = (800 * 4) % (x * 4);
 	while (cy < l)
 	{
-		memcpy((void *)&framebuffer[x + cy * 800], (void *)&buffer[(cy - y) * w], w * 4);
+		memcpy((void *)&framebuffer[x + cy * 800], (void *)&buffer[(cy - y) * w], width);
 		cy++;
 	}
 }
 
 void Graphics::GetBuffer(unsigned int *buffer, int x, int y, int w, int h)
 {
-	register int cy = y, l = y + h;
+	register int cy = y, l = y + h, width;
+	if ((x + w) < 800) width = w * 4;
+	else width = (800 * 4) % (x * 4);
 	while (cy < l)
 	{
-		memcpy((void *)&buffer[(cy - y) * w], (void *)&framebuffer[x + cy * 800], w * 4);
+		memcpy((void *)&buffer[(cy - y) * w], (void *)&framebuffer[x + cy * 800], width);
 		cy++;
 	}
 }
@@ -100,7 +104,8 @@ void Graphics::DrawChar(unsigned int *buffer, int bufferWidth, char c, int x, in
 	{
 		while(cx < 8)
 		{
-			if (glyph[cy] & mask[cx]) buffer[(x + cx) + (y + cy) * bufferWidth] = color;
+			if (glyph[cy] & mask[cx] && (x + cx) < bufferWidth)
+				buffer[(x + cx) + (y + cy) * bufferWidth] = color;
 			cx++;
 		}
 		cx = 0;
@@ -108,7 +113,7 @@ void Graphics::DrawChar(unsigned int *buffer, int bufferWidth, char c, int x, in
 	}
 }
 
-void Graphics::DrawString(unsigned int *buffer, int bufferWidth, char *s, int x, int y, unsigned int color)
+void Graphics::DrawString(unsigned int *buffer, int bufferWidth, const char *s, int x, int y, unsigned int color)
 {
 	register int cx = 0;
 	while(*s)

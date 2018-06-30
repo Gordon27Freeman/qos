@@ -13,7 +13,7 @@ namespace Graphics
 	void GetBuffer(unsigned int *buffer, int x, int y, int w, int h);
 	void DrawFullscreenBuffer(unsigned int *buffer);
 	void DrawChar(unsigned int *buffer, int bufferWidth, char c, int x, int y, unsigned int color);
-	void DrawString(unsigned int *buffer, int bufferWidth, char *s, int x, int y, unsigned int color);
+	void DrawString(unsigned int *buffer, int bufferWidth, const char *s, int x, int y, unsigned int color);
 }
 
 #endif
