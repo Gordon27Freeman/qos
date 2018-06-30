@@ -1,14 +1,16 @@
 #include <i686/mouse.h>
-#include <i686/graphics.h>
 #include <i686/regs.h>
 #include <i686/irq.h>
 #include <i686/pio.h>
+
+#include <graphics.h>
+
 using namespace Mouse;
 
 static unsigned int *framebuffer;
 
 static int MouseX = 400, MouseY = 300, MousePrevX = MouseX, MousePrevY = MouseY;
-static char Cycle = 0, Byte[3], AccX, AccY;
+static char Cycle = 0, Byte[3];
 
 static unsigned int Cursor[11 * 16] =
 {
@@ -34,7 +36,8 @@ static unsigned int Buffer[11 * 16];
 
 static void Handler(struct regs *r)
 {
-	unsigned char status;
+	register char AccX = 0, AccY = 0;
+
 	switch (Cycle)
 	{
 	case 0:
@@ -53,8 +56,9 @@ static void Handler(struct regs *r)
 		break;
 	}
 
-	if (MouseX < 800 && MouseX > -1) MouseX += AccX;
-	if (MouseY < 600 && MouseY > -1) MouseY += AccY;
+	MouseX += AccX;
+	MouseY += AccY;
+
 	if (MouseX >= 800) MouseX = 799;
 	if (MouseY >= 600) MouseY = 599;
 	if (MouseX < 0) MouseX = 0;
@@ -71,10 +75,10 @@ static void Handler(struct regs *r)
 			switch (Cursor[(cx - MouseX) + (cy - MouseY) * 11])
 			{
 			case 1:
-				if (cx < 800) framebuffer[cx + cy * 800] = 0xFFFFFF;
+				if (cx < 800) framebuffer[cx + cy * 800] = 0;
 				break;
 			case 2:
-				if (cx < 800) framebuffer[cx + cy * 800] = 0;
+				if (cx < 800) framebuffer[cx + cy * 800] = 0xFFFFFF;
 				break;
 			}
 			cx++;
@@ -87,23 +91,56 @@ static void Handler(struct regs *r)
 	MousePrevY = MouseY;
 }
 
+static inline void Wait(unsigned char type)
+{
+	unsigned int timeout = 100000;
+	if(type == 0)
+	{
+		while(timeout--) if((inb(0x64) & 1)==1) return;
+		return;
+	}
+	else
+	{
+		while(timeout--) if((inb(0x64) & 2) == 0) return;
+		return;
+	}
+}
+
+static inline void Write(unsigned char data)
+{
+	Wait(1);
+	outb(0x64, 0xD4);
+	Wait(1);
+	outb(0x60, data);
+}
+
+static char Read()
+{
+	Wait(0);
+	return inb(0x60);
+}
+
 void Mouse::Init()
 {
 	unsigned char status;
 
+	Wait(1);
 	outb(0x64, 0xA8);
+
+	Wait(1);
 	outb(0x64, 0x20);
+	Wait(0);
 	status = (inb(0x60) | 2);
+	Wait(1);
 	outb(0x64, 0x60);
+	Wait(1);
 	outb(0x60, status);
 
-	outb(0x64, 0xD4);
-	outb(0x60, 0xF6);
-	inb(0x60);
+	Write(0xF6);
+	Read();
 
-	outb(0x64, 0xD4);
-	outb(0x60, 0xF4);
-	inb(0x60);
+	Write(0xF4);
+	Read();
 
 	framebuffer = Graphics::GetFramebuffer();
 	Graphics::GetBuffer(Buffer, MouseX, MouseY, 11, 16);

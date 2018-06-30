@@ -1,5 +1,5 @@
 global start
-extern kmain
+extern kmain, init
 
 FLAGS equ 1 << 0 | 1 << 1 | 1 << 2
 MAGIC equ 0x1BADB002
@@ -26,9 +26,9 @@ start:
 	or ax, 3 << 9
 	mov cr4, eax
 
+	call init
 	call kmain
 
-	cli
 .l:	hlt
 jmp .l
 

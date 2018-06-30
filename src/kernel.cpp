@@ -1,32 +1,10 @@
-#include <i686/multiboot.h>
-#include <i686/keyboard.h>
-#include <i686/graphics.h>
-#include <i686/memory.h>
-#include <i686/mouse.h>
-#include <i686/timer.h>
-#include <i686/gdt.h>
-#include <i686/idt.h>
-#include <i686/isr.h>
-#include <i686/irq.h>
-#include <i686/mm.h>
+#include <graphics.h>
 
 unsigned int window[160 * 120];
 
-extern "C" void kmain(multiboot_header *multiboot, unsigned int magic)
+extern "C" void kmain()
 {
-	if (magic != MULTIBOOT_BOOTLOADER_MAGIC) asm volatile("cli; hlt;");
-
-	Graphics::Init(multiboot->framebuffer_addr);
-	GDT::Init();
-	IDT::Init();
-	ISR::Init();
-	IRQ::Init();
-	Keyboard::Init();
-	Timer::Init();
-	Mouse::Init();
-	Memory::Init(multiboot->mem_upper + multiboot->mem_lower);
-
-	// -------
+	// ------- Background window
 	Graphics::FillRect(window, 160, 0, 0, 160, 120, 0xb0a090);
 
 	Graphics::HorizontalLine(window, 160, 0, 119, 160, 0x907060);
@@ -35,9 +13,10 @@ extern "C" void kmain(multiboot_header *multiboot, unsigned int magic)
 	Graphics::VerticalLine(window, 160, 0, 0, 120, 0xf0c0b0);
 	// -------
 
+	// Title bar
 	Graphics::FillRect(window, 160, 2, 2, 156, 19, 0x201080);
 
-	// -------
+	// ------- Close button
 	Graphics::FillRect(window, 160, 141, 4, 15, 15, 0xb0a090);
 
 	Graphics::HorizontalLine(window, 160, 141, 18, 15, 0x907060);
@@ -48,11 +27,10 @@ extern "C" void kmain(multiboot_header *multiboot, unsigned int magic)
 	Graphics::DrawChar(window, 160, 'x', 145, 3, 0x101010);
 	// -------
 
+	// Texts
 	Graphics::DrawString(window, 160, "Title", 6, 4, 0xe0e0e0);
 	Graphics::DrawString(window, 160, "Text", 6, 25, 0x101010);
 
-	// =======
+	// ======= Render window
 	Graphics::DrawBuffer(window, 100, 100, 160, 120);
-
-	while (1) asm volatile("hlt");
 }

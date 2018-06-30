@@ -1,5 +1,4 @@
-#include <i686/mm.h>
-#include <i686/graphics.h>
+#include <mm.h>
 using namespace Memory;
 
 #define FREE 0xfe

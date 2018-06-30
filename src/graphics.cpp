@@ -1,6 +1,10 @@
-#include <i686/graphics.h>
-#include <i686/memory.h>
+#include <graphics.h>
 #include <font.h>
+
+#ifdef ARCH_i686
+#include <i686/memory.h>
+#endif
+
 using namespace Graphics;
 
 static int mask[8] = { 128, 64, 32, 16, 8, 4, 2, 1 };
