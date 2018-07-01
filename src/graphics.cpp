@@ -20,7 +20,11 @@ void Graphics::Init(unsigned long long addr)
 {
 	framebuffer = (unsigned int *)addr;
 	register int cx = 0;
-	VerticalGradient(framebuffer, 800, 0, 0, 800, 600, 0x10b0d0, 0x004070);
+	while (cx < 800 * 600)
+	{
+		framebuffer[cx] = 0x007b7b;
+		cx++;
+	}
 }
 
 void Graphics::Line(unsigned int *buffer, int bufferWidth, int x0, int y0, int x1, int y1, unsigned int color)

@@ -14,22 +14,24 @@ struct Window
 	char *title;
 	unsigned int *buffer;
 	int x, y, w, h;
-	char used = 0;
+	char c = 0;
+	int cx = 0, cy = 0;
 };
 
 struct Window desktop[0xff];
-static int topWindow = 0;
+static int windowCount = 0;
 static unsigned int mouseBuffer[11 * 16];
 
 static void DrawWindow(struct Window window)
 {
 	Graphics::FillRect(window.buffer, window.w, 0, 0, window.w - 1, window.h - 1, 0xb0a090);
-	Graphics::HorizontalGradient(window.buffer, window.w, 2, 2, window.w - 4, 19, 0x201080, 0x10c0c0);
+	Graphics::FillRect(window.buffer, window.w, 2, 2, window.w - 4, 19, 0x104080);
+	//Graphics::HorizontalGradient(window.buffer, window.w, 2, 2, window.w - 4, 19, 0x201080, 0x10c0c0);
 
-	Graphics::HorizontalLine(window.buffer, window.w, 0, window.h - 1, window.w - 1, 0x907060);
-	Graphics::VerticalLine(window.buffer, window.w, window.w - 1, 0, window.h - 1, 0x907060);
-	Graphics::HorizontalLine(window.buffer, window.w, 0, 0, window.w - 1, 0xf0c0b0);
-	Graphics::VerticalLine(window.buffer, window.w, 0, 0, window.h - 1, 0xf0c0b0);
+	Graphics::HorizontalLine(window.buffer, window.w, 0, window.h - 1, window.w, 0x907060);
+	Graphics::VerticalLine(window.buffer, window.w, window.w - 1, 0, window.h, 0x907060);
+	Graphics::HorizontalLine(window.buffer, window.w, 0, 0, window.w, 0xf0c0b0);
+	Graphics::VerticalLine(window.buffer, window.w, 0, 0, window.h, 0xf0c0b0);
 
 	Graphics::FillRect(window.buffer, window.w, window.w - 19, 4, 15, 15, 0xb0a090);
 	Graphics::HorizontalLine(window.buffer, window.w, window.w - 19, 18, 15, 0x907060);
@@ -50,44 +52,56 @@ static void DrawWindow(struct Window window)
 
 void GUI::Update()
 {
-	DrawWindow(desktop[topWindow]);
+	if (windowCount > 0) DrawWindow(desktop[0]);
+}
+
+void GUI::Flush()
+{
+	unsigned int *framebuffer = Graphics::GetFramebuffer();
+	register int cx = 0;
+	while (cx < 800 * 600)
+	{
+		framebuffer[cx] = 0x007b7b;
+		cx++;
+	}
+	for(int i = windowCount; i > 0; i--) DrawWindow(desktop[i - 1]);
 }
 
 void GUI::CreateWindow(const char *title, int x, int y, int w, int h)
 {
-	register int n = 0;
-	while (n < 0xff)
+	for(int i = windowCount; i > 0; i--)
 	{
-		if (desktop[n].used == 0)
-		{
-			desktop[n].title = (char *)Memory::Alloc(strlen(title));
-			strcpy(desktop[n].title, title);
-			desktop[n].x = x;
-			desktop[n].y = y;
-			desktop[n].w = w;
-			desktop[n].h = h;
-			desktop[n].buffer = (unsigned int *)Memory::Alloc(w * h * 4);
-			desktop[n].used = 1;
-			topWindow = n;
-			Update();
-			break;
-		}
-		n++;
+		desktop[i].title = desktop[i - 1].title;
+		desktop[i].x = desktop[i - 1].x;
+		desktop[i].y = desktop[i - 1].y;
+		desktop[i].w = desktop[i - 1].w;
+		desktop[i].h = desktop[i - 1].h;
+		desktop[i].buffer = desktop[i - 1].buffer;
 	}
+	desktop[0].title = (char *)Memory::Alloc(strlen(title));
+	strcpy(desktop[0].title, title);
+	desktop[0].x = x;
+	desktop[0].y = y;
+	desktop[0].w = w;
+	desktop[0].h = h;
+	desktop[0].buffer = (unsigned int *)Memory::Alloc(w * h * 4);
+	DrawWindow(desktop[0]);
+	windowCount++;
 }
 
-void GUI::DestroyWindow(const char *title)
+void GUI::DestroyWindow()
 {
-	register int n = 0;
-	while (n < 0xff)
+	for(int i = 0; i < windowCount; i--)
 	{
-		if (!strcmp(desktop[n].title, title))
-		{
-			desktop[n].used = 0;
-			break;
-		}
-		n++;
+		desktop[i].title = desktop[i + 1].title;
+		desktop[i].x = desktop[i + 1].x;
+		desktop[i].y = desktop[i + 1].y;
+		desktop[i].w = desktop[i + 1].w;
+		desktop[i].h = desktop[i + 1].h;
+		desktop[i].buffer = desktop[i + 1].buffer;
 	}
+	Flush();
+	windowCount--;
 }
 
 void GUI::MousePress(int Button, int MouseX, int MouseY)
@@ -95,15 +109,56 @@ void GUI::MousePress(int Button, int MouseX, int MouseY)
 	register int n = 0;
 	while (n < 0xff)
 	{
-		if (desktop[n].used == 1)
+		if (MouseX < (desktop[n].x + desktop[n].w) && MouseX > desktop[n].x)
 		{
-			if (MouseX < (desktop[n].x + desktop[n].w) && MouseX > desktop[n].x)
+			if (MouseY < (desktop[n].y + desktop[n].h) && MouseY > desktop[n].y)
 			{
-				if (MouseY < (desktop[n].y + desktop[n].h) && MouseY > desktop[n].y)
+				struct Window win;
+				win.title = desktop[n].title;
+				win.x = desktop[n].x;
+				win.y = desktop[n].y;
+				win.w = desktop[n].w;
+				win.h = desktop[n].h;
+				win.buffer = desktop[n].buffer;
+				for(int i = n; i > 0; i--)
 				{
-					topWindow = n;
-					break;
+					desktop[i].title = desktop[i - 1].title;
+					desktop[i].x = desktop[i - 1].x;
+					desktop[i].y = desktop[i - 1].y;
+					desktop[i].w = desktop[i - 1].w;
+					desktop[i].h = desktop[i - 1].h;
+					desktop[i].buffer = desktop[i - 1].buffer;
 				}
+				desktop[0].title = win.title;
+				desktop[0].x = win.x;
+				desktop[0].y = win.y;
+				desktop[0].w = win.w;
+				desktop[0].h = win.h;
+				desktop[0].buffer = win.buffer;
+
+				if (MouseX < (desktop[0].x + desktop[0].w - 4) && MouseX > (desktop[0].x + desktop[0].w - 19))
+				{
+					if (MouseY < (desktop[0].y + 19) && MouseY > (desktop[0].y + 4))
+					{
+						DestroyWindow();
+						break;
+					}
+				}
+
+				if (desktop[0].c == 1)
+				{
+					desktop[0].x += Mouse::GetX() - desktop[0].cx;
+					desktop[0].y += Mouse::GetY() - desktop[0].cy;
+					desktop[0].cx = Mouse::GetX();
+					desktop[0].cy = Mouse::GetY();
+				}
+				else
+				{
+					desktop[0].c = 1;
+					desktop[0].cx = Mouse::GetX();
+					desktop[0].cy = Mouse::GetY();
+				}
+				break;
 			}
 		}
 		n++;
@@ -112,5 +167,5 @@ void GUI::MousePress(int Button, int MouseX, int MouseY)
 
 void GUI::MouseRelease(int Button, int MouseX, int MouseY)
 {
-
+	desktop[0].c = 0;
 }

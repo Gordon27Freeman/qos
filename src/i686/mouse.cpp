@@ -100,8 +100,8 @@ static void Handler(struct regs *r)
 	if (LeftButton) GUI::MousePress(1, MouseX, MouseY);
 	else GUI::MouseRelease(1, MouseX, MouseY);
 
-	if (RightButton) GUI::MousePress(2, MouseX, MouseY);
-	else GUI::MouseRelease(2, MouseX, MouseY);
+	//if (RightButton) GUI::MousePress(2, MouseX, MouseY);
+	//else GUI::MouseRelease(2, MouseX, MouseY);
 
 	MousePrevX = MouseX;
 	MousePrevY = MouseY;
