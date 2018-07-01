@@ -29,7 +29,8 @@ start:
 	call init
 	call kmain
 
-.l:	hlt
+.l:	cli
+	hlt
 jmp .l
 
 section .bss

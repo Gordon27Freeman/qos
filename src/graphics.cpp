@@ -20,11 +20,29 @@ void Graphics::Init(unsigned long long addr)
 {
 	framebuffer = (unsigned int *)addr;
 	register int cx = 0;
-	while (cx < 800 * 600)
+	VerticalGradient(framebuffer, 800, 0, 0, 800, 600, 0x10b0d0, 0x004070);
+}
+
+void Graphics::Line(unsigned int *buffer, int bufferWidth, int x0, int y0, int x1, int y1, unsigned int color)
+{
+	int dx, dy;
+	if (x1 >= x0) dx = x1 - x0;
+	else dx = x0 - x1;
+	if (y1 >= y0) dy = y1 - y0;
+	else dy = y0 - y1;
+
+	int sx = x0 < x1 ? 1 : -1;
+	int sy = y0 < y1 ? 1 : -1; 
+	int err = (dx > dy ? dx : -dy) / 2, e2;
+ 
+	while (x0 != x1 && y0 != y1)
 	{
-		framebuffer[cx] = 0x007b7b;
-		cx++;
+		buffer[x0 + y0 * bufferWidth] = color;
+		e2 = err;
+		if (e2 > -dx) { err -= dy; x0 += sx; }
+		if (e2 < dy) { err += dx; y0 += sy; }
 	}
+	buffer[x0 + y0 * bufferWidth] = color;
 }
 
 void Graphics::HorizontalLine(unsigned int *buffer, int bufferWidth, int x, int y, int length, unsigned int color)
@@ -125,5 +143,61 @@ void Graphics::DrawString(unsigned int *buffer, int bufferWidth, const char *s, 
 		DrawChar(buffer, bufferWidth, *s, x + cx, y, color);
 		s++;
 		cx += 8;
+	}
+}
+
+void Graphics::HorizontalGradient(unsigned int *buffer, int bufferWidth, int x, int y, int w, int h, unsigned int startColor, unsigned int endColor)
+{
+	float ecb = endColor & 0xFF;
+	float ecg = (endColor >> 8) & 0xFF;
+	float ecr = (endColor >> 16) & 0xFF;
+	register int cx = x, cy = y, lx = x + w, ly = y + h;
+	while (cy < ly)
+	{
+		float scb = startColor & 0xFF;
+		float scg = (startColor >> 8) & 0xFF;
+		float scr = (startColor >> 16) & 0xFF;
+		while (cx < lx)
+		{
+			if (scb < ecb) scb += (ecb - scb) / w;
+			else if (scb > ecb) scb -= (scb - ecb) / w;
+			if (scg < ecg) scg += (ecg - scg) / w;
+			else if (scg > ecg) scg -= (scg - ecg) / w;
+			if (scr < ecr) scr += (ecr - scr) / w;
+			else if (scr > ecr) scr -= (scr - ecr) / w;
+
+			buffer[cx + cy * bufferWidth] = (int)scb + ((int)scg << 8) + ((int)scr << 16);
+			cx++;
+		}
+		cx = x;
+		cy++;
+	}
+}
+
+void Graphics::VerticalGradient(unsigned int *buffer, int bufferWidth, int x, int y, int w, int h, unsigned int startColor, unsigned int endColor)
+{
+	float ecb = endColor & 0xFF;
+	float ecg = (endColor >> 8) & 0xFF;
+	float ecr = (endColor >> 16) & 0xFF;
+	register int cx = x, cy = y, lx = x + w, ly = y + h;
+	while (cx < lx)
+	{
+		float scb = startColor & 0xFF;
+		float scg = (startColor >> 8) & 0xFF;
+		float scr = (startColor >> 16) & 0xFF;
+		while (cy < ly)
+		{
+			if (scb < ecb) scb += (ecb - scb) / w;
+			else if (scb > ecb) scb -= (scb - ecb) / w;
+			if (scg < ecg) scg += (ecg - scg) / w;
+			else if (scg > ecg) scg -= (scg - ecg) / w;
+			if (scr < ecr) scr += (ecr - scr) / w;
+			else if (scr > ecr) scr -= (scr - ecr) / w;
+
+			buffer[cx + cy * bufferWidth] = (int)scb + ((int)scg << 8) + ((int)scr << 16);
+			cy++;
+		}
+		cx++;
+		cy = y;
 	}
 }

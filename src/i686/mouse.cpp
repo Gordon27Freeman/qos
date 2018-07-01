@@ -4,6 +4,7 @@
 #include <i686/pio.h>
 
 #include <graphics.h>
+#include <gui.h>
 
 using namespace Mouse;
 
@@ -11,6 +12,8 @@ static unsigned int *framebuffer;
 
 static int MouseX = 400, MouseY = 300, MousePrevX = MouseX, MousePrevY = MouseY;
 static char Cycle = 0, Byte[3];
+
+static char LeftButton = 0, RightButton = 0, PrevLeftButton = 0, PrevRightButton = 0;
 
 static unsigned int Cursor[11 * 16] =
 {
@@ -34,36 +37,8 @@ static unsigned int Cursor[11 * 16] =
 
 static unsigned int Buffer[11 * 16];
 
-static void Handler(struct regs *r)
+static void Draw()
 {
-	register char AccX = 0, AccY = 0;
-
-	switch (Cycle)
-	{
-	case 0:
-		Byte[0] = inb(0x60);
-		Cycle++;
-		break;
-	case 1:
-		Byte[1] = inb(0x60);
-		Cycle++;
-		break;
-	case 2:
-		Byte[2] = inb(0x60);
-		AccX = Byte[1];
-		AccY = -Byte[2];
-		Cycle = 0;
-		break;
-	}
-
-	MouseX += AccX;
-	MouseY += AccY;
-
-	if (MouseX >= 800) MouseX = 799;
-	if (MouseY >= 600) MouseY = 599;
-	if (MouseX < 0) MouseX = 0;
-	if (MouseY < 0) MouseY = 0;
-
 	Graphics::DrawBuffer(Buffer, MousePrevX, MousePrevY, 11, 16);
 	Graphics::GetBuffer(Buffer, MouseX, MouseY, 11, 16);
 
@@ -86,6 +61,47 @@ static void Handler(struct regs *r)
 		cx = MouseX;
 		cy++;
 	}
+}
+
+static void Handler(struct regs *r)
+{
+	register char AccX = 0, AccY = 0;
+
+	switch (Cycle)
+	{
+	case 0:
+		Byte[0] = inb(0x60);
+		LeftButton = Byte[0] & 1;
+		RightButton = Byte[0] & 2;
+		Cycle++;
+		break;
+	case 1:
+		Byte[1] = inb(0x60);
+		Cycle++;
+		break;
+	case 2:
+		Byte[2] = inb(0x60);
+		AccX = Byte[1];
+		AccY = -Byte[2];
+		Cycle = 0;
+		break;
+	}
+
+	MouseX += AccX;
+	MouseY += AccY;
+
+	if (MouseX >= 800) MouseX = 799;
+	if (MouseY >= 600) MouseY = 599;
+	if (MouseX < 0) MouseX = 0;
+	if (MouseY < 0) MouseY = 0;
+
+	Draw();
+
+	if (LeftButton) GUI::MousePress(1, MouseX, MouseY);
+	else GUI::MouseRelease(1, MouseX, MouseY);
+
+	if (RightButton) GUI::MousePress(2, MouseX, MouseY);
+	else GUI::MouseRelease(2, MouseX, MouseY);
 
 	MousePrevX = MouseX;
 	MousePrevY = MouseY;
@@ -120,6 +136,16 @@ static char Read()
 	return inb(0x60);
 }
 
+int Mouse::GetX()
+{
+	return MouseX;
+}
+
+int Mouse::GetY()
+{
+	return MouseY;
+}
+
 void Mouse::Init()
 {
 	unsigned char status;
@@ -143,6 +169,6 @@ void Mouse::Init()
 	Read();
 
 	framebuffer = Graphics::GetFramebuffer();
-	Graphics::GetBuffer(Buffer, MouseX, MouseY, 11, 16);
+	Graphics::GetBuffer(Buffer, 0, 0, 11, 16);
 	IRQ::InstallHandler(12, Handler);
 }

@@ -2,6 +2,8 @@
 #include <i686/regs.h>
 #include <i686/irq.h>
 #include <i686/pio.h>
+
+#include <gui.h>
 using namespace Timer;
 
 static unsigned long long current_ticks;

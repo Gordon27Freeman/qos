@@ -3,6 +3,8 @@
 
 namespace Mouse
 {
+	int GetX();
+	int GetY();
 	void Init();
 }
 
