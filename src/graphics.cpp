@@ -15,7 +15,7 @@ extern struct Font VGAFont;
 void Graphics::Init(unsigned long long addr)
 {
 	framebuffer = (unsigned int *)addr;
-	register int cx = 0;
+	int cx = 0;
 	while (cx < 800 * 600)
 	{
 		framebuffer[cx] = 0x007b7b;
@@ -47,7 +47,7 @@ void Graphics::Line(unsigned int *buffer, int bufferWidth, int x0, int y0, int x
 
 void Graphics::HorizontalLine(unsigned int *buffer, int bufferWidth, int x, int y, int length, unsigned int color)
 {
-	register int cx = x, l = x + length;
+	int cx = x, l = x + length;
 	while (cx < l && cx < bufferWidth)
 	{
 		buffer[cx + y * bufferWidth] = color;
@@ -57,7 +57,7 @@ void Graphics::HorizontalLine(unsigned int *buffer, int bufferWidth, int x, int 
 
 void Graphics::VerticalLine(unsigned int *buffer, int bufferWidth, int x, int y, int length, unsigned int color)
 {
-	register int cy = y, l = y + length;
+	int cy = y, l = y + length;
 	if (x < bufferWidth) while (cy < l)
 	{
 		buffer[x + cy * bufferWidth] = color;
@@ -75,7 +75,7 @@ void Graphics::Rect(unsigned int *buffer, int bufferWidth, int x, int y, int w, 
 
 void Graphics::FillRect(unsigned int *buffer, int bufferWidth, int x, int y, int w, int h, unsigned int color)
 {
-	register int cy = y, cx = x, ly = y + h, lx = x + w;
+	int cy = y, cx = x, ly = y + h, lx = x + w;
 	while (cy < ly)
 	{
 		while (cx < lx && cx < bufferWidth)
@@ -90,10 +90,10 @@ void Graphics::FillRect(unsigned int *buffer, int bufferWidth, int x, int y, int
 
 void Graphics::DrawBuffer(unsigned int *dest, unsigned int *buffer, int dw, int dh, int x, int y, int w, int h)
 {
-	register int cy = y, l = y + h, width;
+	int cy = y, l = y + h, width;
 	if ((x + w) < dw) width = w * 4;
 	else width = (dw * 4) % (x * 4);
-	while (cy < l)
+	while (cy < l && cy < (y + dh))
 	{
 		memcpy((void *)&dest[x + cy * dw], (void *)&buffer[(cy - y) * w], width);
 		cy++;
@@ -107,8 +107,8 @@ void Graphics::DrawFullscreenBuffer(unsigned int *buffer)
 
 void Graphics::DrawChar(unsigned int *buffer, int bufferWidth, char c, int x, int y, unsigned int color)
 {
-	register int cx = 0, cy = 0;
-	register unsigned char *glyph = &VGAFont.Bitmap[(c - 31) * 16];
+	int cx = 0, cy = 0;
+	unsigned char *glyph = &VGAFont.Bitmap[(c - 31) * 16];
  
 	while(cy < 16)
 	{
@@ -125,7 +125,7 @@ void Graphics::DrawChar(unsigned int *buffer, int bufferWidth, char c, int x, in
 
 void Graphics::DrawString(unsigned int *buffer, int bufferWidth, const char *s, int x, int y, unsigned int color)
 {
-	register int cx = 0;
+	int cx = 0;
 	while(*s)
 	{
 		DrawChar(buffer, bufferWidth, *s, x + cx, y, color);
@@ -139,7 +139,7 @@ void Graphics::HorizontalGradient(unsigned int *buffer, int bufferWidth, int x, 
 	float ecb = endColor & 0xFF;
 	float ecg = (endColor >> 8) & 0xFF;
 	float ecr = (endColor >> 16) & 0xFF;
-	register int cx = x, cy = y, lx = x + w, ly = y + h;
+	int cx = x, cy = y, lx = x + w, ly = y + h;
 	while (cy < ly)
 	{
 		float scb = startColor & 0xFF;
@@ -167,7 +167,7 @@ void Graphics::VerticalGradient(unsigned int *buffer, int bufferWidth, int x, in
 	float ecb = endColor & 0xFF;
 	float ecg = (endColor >> 8) & 0xFF;
 	float ecr = (endColor >> 16) & 0xFF;
-	register int cx = x, cy = y, lx = x + w, ly = y + h;
+	int cx = x, cy = y, lx = x + w, ly = y + h;
 	while (cx < lx)
 	{
 		float scb = startColor & 0xFF;

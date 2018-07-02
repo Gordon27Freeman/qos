@@ -14,7 +14,6 @@
 extern "C" void init(multiboot_header *multiboot, unsigned int magic)
 {
 	if (magic != MULTIBOOT_BOOTLOADER_MAGIC) asm volatile("cli; hlt;");
-
 	GDT::Init();
 	IDT::Init();
 	ISR::Init();

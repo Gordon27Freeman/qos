@@ -9,8 +9,9 @@
 
 using namespace GUI;
 
-static unsigned int Cursor[11 * 16] =
+static unsigned int Cursor[11 * 19] =
 {
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	1, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0,
 	1, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0,
@@ -26,7 +27,9 @@ static unsigned int Cursor[11 * 16] =
 	1, 1, 0, 0, 1, 2, 2, 1, 0, 0, 0,
 	1, 0, 0, 0, 0, 1, 2, 2, 1, 0, 0,
 	0, 0, 0, 0, 0, 1, 2, 2, 1, 0, 0,
-	0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0
+	0, 0, 0, 0, 0, 0, 1, 2, 2, 1, 0,
+	0, 0, 0, 0, 0, 0, 1, 2, 2, 1, 0,
+	0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0
 };
 
 struct Window
@@ -34,13 +37,14 @@ struct Window
 	char *title;
 	unsigned int *buffer;
 	int x, y, w, h;
-	char c = 0;
-	int cx = 0, cy = 0;
+	char c;
+	int cx, cy;
 };
 
 struct Window desktop[0xff];
 static int windowCount = 0;
-static unsigned int framebuffer[800 * 600];
+static unsigned int buffer[2000 * 2000];
+static unsigned int *framebuffer = buffer + 40000;
 
 static void DrawWindow(struct Window window)
 {
@@ -69,7 +73,7 @@ static void DrawMouse()
 {
 	int MouseY = Mouse::GetY();
 	int MouseX = Mouse::GetX();
-	int cy = MouseY, cx = MouseX, ly = MouseY + 16, lx = MouseX + 11;
+	int cy = MouseY, cx = MouseX, ly = MouseY + 19, lx = MouseX + 11;
 	while (cy < ly)
 	{
 		while (cx < lx)
@@ -128,23 +132,28 @@ static void MouseClick()
 				{
 					if (MouseY < (desktop[0].y + 19) && MouseY > (desktop[0].y + 4))
 					{
-						DestroyWindow();
+						if (!desktop[0].c) DestroyWindow();
 						break;
 					}
 				}
 
-				if (desktop[0].c == 1)
+				if (MouseY < (desktop[0].y + 22))
 				{
-					desktop[0].x += Mouse::GetX() - desktop[0].cx;
-					desktop[0].y += Mouse::GetY() - desktop[0].cy;
-					desktop[0].cx = Mouse::GetX();
-					desktop[0].cy = Mouse::GetY();
-				}
-				else
-				{
-					desktop[0].c = 1;
-					desktop[0].cx = Mouse::GetX();
-					desktop[0].cy = Mouse::GetY();
+					if (desktop[0].c == 1)
+					{
+						if(desktop[0].x > 0) desktop[0].x += MouseX - desktop[0].cx;
+						else desktop[0].x = 0;
+						if(desktop[0].y > 0) desktop[0].y += MouseY - desktop[0].cy;
+						else desktop[0].y = 0;
+						desktop[0].cx = MouseX;
+						desktop[0].cy = MouseY;
+					}
+					else
+					{
+						desktop[0].c = 1;
+						desktop[0].cx = MouseX;
+						desktop[0].cy = MouseY;
+					}
 				}
 				break;
 			}
@@ -155,7 +164,7 @@ static void MouseClick()
 
 void GUI::Update()
 {
-	register int cx = 0;
+	int cx = 0;
 	while (cx < 800 * 600)
 	{
 		framebuffer[cx] = 0x007b7b;
@@ -186,14 +195,15 @@ void GUI::CreateWindow(const char *title, int x, int y, int w, int h)
 	desktop[0].y = y;
 	desktop[0].w = w;
 	desktop[0].h = h;
-	desktop[0].buffer = (unsigned int *)Memory::Alloc(w * h * 4);
+	unsigned int *new_buffer = (unsigned int *)Memory::Alloc(w * h * 16);
+	desktop[0].buffer = new_buffer + 10000;
 	DrawWindow(desktop[0]);
 	windowCount++;
 }
 
 void GUI::DestroyWindow()
 {
-	for(int i = 0; i < windowCount; i--)
+	for(int i = 0; i < windowCount; i++)
 	{
 		desktop[i].title = desktop[i + 1].title;
 		desktop[i].x = desktop[i + 1].x;
@@ -202,6 +212,5 @@ void GUI::DestroyWindow()
 		desktop[i].h = desktop[i + 1].h;
 		desktop[i].buffer = desktop[i + 1].buffer;
 	}
-	Update();
 	windowCount--;
 }

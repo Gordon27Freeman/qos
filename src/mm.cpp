@@ -25,7 +25,7 @@ void Memory::Init(unsigned int totalMemory)
 	memoryMap[0].addr = &kernel_end;
 	memoryMap[0].size = freeMemory;
 	memoryMap[0].type = FREE;
-	register int i = 1;
+	int i = 1;
 	while (i < 100000)
 	{
 		memoryMap[i].type = UNUSED;
@@ -35,7 +35,7 @@ void Memory::Init(unsigned int totalMemory)
 
 void *Memory::Alloc(size_t size)
 {
-	register int n = 0, f = 0;
+	int n = 0, f = 0;
 	while (n < 100000)
 	{
 		if (memoryMap[n].type == FREE && memoryMap[n].size >= size)
@@ -62,7 +62,7 @@ void *Memory::Alloc(size_t size)
 
 void Memory::Free(void *obj)
 {
-	register int n = 0;
+	int n = 0;
 	while (n < 100000)
 	{
 		if (memoryMap[n].addr == (unsigned int *)obj)

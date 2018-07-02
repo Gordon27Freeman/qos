@@ -1,6 +1,8 @@
 #include <i686/isr.h>
 #include <i686/idt.h>
 #include <i686/regs.h>
+
+#include <graphics.h>
 using namespace ISR;
 
 extern "C" void isr0();
@@ -108,12 +110,17 @@ static const char *exceptionMessages[] =
 	"Reserved"
 };
 
+static unsigned int buffer[1000 * 1000];
+static unsigned int *framebuffer = buffer + 10000;
+
 extern "C" void FaultHandler(struct regs *r)
 {
 	if (r->int_no < 32)
 	{
-		// print(exception_messages[r->int_no]);
-		// print(" Exception. System Halted!\n");
+		Graphics::FillRect(framebuffer, 800, 0, 0, 800, 600, 0x303030);
+		Graphics::DrawString(framebuffer, 800, exceptionMessages[r->int_no], 16, 10, 0xffffff);
+		Graphics::DrawString(framebuffer, 800, "Exception Occured. System Halted!", 16, 28, 0xffffff);
+		Graphics::DrawFullscreenBuffer(framebuffer);
 		while (1) asm volatile("cli; hlt;");
 	}
 }

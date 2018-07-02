@@ -5,7 +5,7 @@
 
 static void small_memcpy(void *to, const void *from, size_t n)
 {
-	register uintptr_t dummy;
+	uintptr_t dummy;
 	asm volatile("rep; movsb" : "=&D"(to), "=&S"(from), "=&c"(dummy) : "0" (to), "1" (from),"2" (n) : "memory");
 }
 
@@ -65,7 +65,7 @@ void *memcpy(void *dest, const void *src, size_t count)
 
 	if(count >= MIN_LEN)
 	{
-		register uintptr_t delta;
+		uintptr_t delta;
 		delta = ((uintptr_t)dest)&(SSE_MMREG_SIZE-1);
 		
 		if(delta)
