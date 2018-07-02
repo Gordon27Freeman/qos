@@ -95,7 +95,8 @@ void Graphics::DrawBuffer(unsigned int *dest, unsigned int *buffer, int dw, int 
 	else width = (dw * 4) % (x * 4);
 	while (cy < l && cy < (y + dh))
 	{
-		memcpy((void *)&dest[x + cy * dw], (void *)&buffer[(cy - y) * w], width);
+		for(int cx = x; cx < (x + w); cx++)
+		if(cx < dw && cx > -1 && cy > -1) dest[cx + cy * dw] = buffer[(cx - x) + (cy - y) * w];
 		cy++;
 	}
 }
@@ -114,7 +115,7 @@ void Graphics::DrawChar(unsigned int *buffer, int bufferWidth, char c, int x, in
 	{
 		while(cx < 8)
 		{
-			if (glyph[cy] & mask[cx] && (x + cx) < bufferWidth)
+			if (glyph[cy] & mask[cx] && (x + cx) < bufferWidth && (x + cx) > 0)
 				buffer[(x + cx) + (y + cy) * bufferWidth] = color;
 			cx++;
 		}

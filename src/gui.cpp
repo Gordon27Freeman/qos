@@ -37,6 +37,7 @@ struct Window
 	char *title;
 	unsigned int *buffer;
 	int x, y, w, h;
+	int px, py, pw, ph;
 	char c;
 	int cx, cy;
 };
@@ -55,6 +56,14 @@ static void DrawWindow(struct Window window)
 	Graphics::VerticalLine(window.buffer, window.w, window.w - 1, 0, window.h, 0x907060);
 	Graphics::HorizontalLine(window.buffer, window.w, 0, 0, window.w, 0xf0c0b0);
 	Graphics::VerticalLine(window.buffer, window.w, 0, 0, window.h, 0xf0c0b0);
+
+	Graphics::FillRect(window.buffer, window.w, window.w - 37, 4, 15, 15, 0xb0a090);
+	Graphics::HorizontalLine(window.buffer, window.w, window.w - 37, 18, 15, 0x907060);
+	Graphics::VerticalLine(window.buffer, window.w, window.w - 23, 4, 15, 0x907060);
+	Graphics::HorizontalLine(window.buffer, window.w, window.w - 37, 4, 15, 0xf0c0b0);
+	Graphics::VerticalLine(window.buffer, window.w, window.w - 37, 4, 15, 0xf0c0b0);
+	Graphics::Rect(window.buffer, window.w, window.w - 33, 6, 8, 8, 0xf0c0b0);
+	Graphics::Rect(window.buffer, window.w, window.w - 34, 7, 8, 8, 0x404040);
 
 	Graphics::FillRect(window.buffer, window.w, window.w - 19, 4, 15, 15, 0xb0a090);
 	Graphics::HorizontalLine(window.buffer, window.w, window.w - 19, 18, 15, 0x907060);
@@ -99,66 +108,85 @@ static void MouseClick()
 	int MouseY = Mouse::GetY();
 	int MouseX = Mouse::GetX();
 	int n = 0;
-	while (n < 0xff)
-	{
-		if (MouseX < (desktop[n].x + desktop[n].w) && MouseX > desktop[n].x)
-		{
-			if (MouseY < (desktop[n].y + desktop[n].h) && MouseY > desktop[n].y)
-			{
-				struct Window win;
-				win.title = desktop[n].title;
-				win.x = desktop[n].x;
-				win.y = desktop[n].y;
-				win.w = desktop[n].w;
-				win.h = desktop[n].h;
-				win.buffer = desktop[n].buffer;
-				for(int i = n; i > 0; i--)
-				{
-					desktop[i].title = desktop[i - 1].title;
-					desktop[i].x = desktop[i - 1].x;
-					desktop[i].y = desktop[i - 1].y;
-					desktop[i].w = desktop[i - 1].w;
-					desktop[i].h = desktop[i - 1].h;
-					desktop[i].buffer = desktop[i - 1].buffer;
-				}
-				desktop[0].title = win.title;
-				desktop[0].x = win.x;
-				desktop[0].y = win.y;
-				desktop[0].w = win.w;
-				desktop[0].h = win.h;
-				desktop[0].buffer = win.buffer;
 
-				if (MouseX < (desktop[0].x + desktop[0].w - 4) && MouseX > (desktop[0].x + desktop[0].w - 19))
+	if (desktop[0].c == 1)
+	{
+		desktop[0].x += MouseX - desktop[0].cx;
+		desktop[0].y += MouseY - desktop[0].cy;
+		desktop[0].cx = MouseX;
+		desktop[0].cy = MouseY;
+	}
+	else
+	{
+		while (n < 0xff)
+		{
+			if (MouseX < (desktop[n].x + desktop[n].w) && MouseX > desktop[n].x)
+			{
+				if (MouseY < (desktop[n].y + desktop[n].h) && MouseY > desktop[n].y)
 				{
-					if (MouseY < (desktop[0].y + 19) && MouseY > (desktop[0].y + 4))
+					struct Window win;
+					win.title = desktop[n].title;
+					win.x = desktop[n].x;
+					win.y = desktop[n].y;
+					win.w = desktop[n].w;
+					win.h = desktop[n].h;
+					win.buffer = desktop[n].buffer;
+					for(int i = n; i > 0; i--)
+					{
+						desktop[i].title = desktop[i - 1].title;
+						desktop[i].x = desktop[i - 1].x;
+						desktop[i].y = desktop[i - 1].y;
+						desktop[i].w = desktop[i - 1].w;
+						desktop[i].h = desktop[i - 1].h;
+						desktop[i].buffer = desktop[i - 1].buffer;
+					}
+					desktop[0].title = win.title;
+					desktop[0].x = win.x;
+					desktop[0].y = win.y;
+					desktop[0].w = win.w;
+					desktop[0].h = win.h;
+					desktop[0].buffer = win.buffer;
+
+					if (MouseX < (desktop[0].x + desktop[0].w - 4) && MouseX > (desktop[0].x + desktop[0].w - 19) && MouseY < (desktop[0].y + 20))
 					{
 						if (!desktop[0].c) DestroyWindow();
 						break;
 					}
-				}
-
-				if (MouseY < (desktop[0].y + 22))
-				{
-					if (desktop[0].c == 1)
+					else if (MouseX < (desktop[0].x + desktop[0].w - 21) && MouseX > (desktop[0].x + desktop[0].w - 37) && MouseY < (desktop[0].y + 20))
 					{
-						if(desktop[0].x > 0) desktop[0].x += MouseX - desktop[0].cx;
-						else desktop[0].x = 0;
-						if(desktop[0].y > 0) desktop[0].y += MouseY - desktop[0].cy;
-						else desktop[0].y = 0;
-						desktop[0].cx = MouseX;
-						desktop[0].cy = MouseY;
+						if (desktop[0].w != 800 && desktop[0].h != 600)
+						{
+							desktop[0].pw = desktop[0].w;
+							desktop[0].ph = desktop[0].h;
+							desktop[0].px = desktop[0].x;
+							desktop[0].py = desktop[0].y;
+							desktop[0].w = 800;
+							desktop[0].h = 600;
+							desktop[0].x = 0;
+							desktop[0].y = 0;
+						}
+						else
+						{
+							desktop[0].w = desktop[0].pw;
+							desktop[0].h = desktop[0].ph;
+							desktop[0].x = desktop[0].px;
+							desktop[0].y = desktop[0].py;
+						}
+						DrawWindow(desktop[0]);
+						break;
 					}
-					else
+					else if (MouseY < (desktop[0].y + 22))
 					{
+						
 						desktop[0].c = 1;
 						desktop[0].cx = MouseX;
 						desktop[0].cy = MouseY;
 					}
+					break;
 				}
-				break;
 			}
+			n++;
 		}
-		n++;
 	}
 }
 
