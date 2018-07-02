@@ -3,69 +3,16 @@
 #include <i686/irq.h>
 #include <i686/pio.h>
 
-#include <graphics.h>
-#include <gui.h>
-
 using namespace Mouse;
-
-static unsigned int *framebuffer;
 
 static int MouseX = 400, MouseY = 300, MousePrevX = MouseX, MousePrevY = MouseY;
 static char Cycle = 0, Byte[3];
 
-static char LeftButton = 0, RightButton = 0, PrevLeftButton = 0, PrevRightButton = 0;
-
-static unsigned int Cursor[11 * 16] =
-{
-	1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	1, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-	1, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0,
-	1, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0,
-	1, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0,
-	1, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0,
-	1, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0,
-	1, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0,
-	1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0,
-	1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1,
-	1, 2, 2, 1, 2, 2, 1, 0, 0, 0, 0,
-	1, 2, 1, 0, 1, 2, 2, 1, 0, 0, 0,
-	1, 1, 0, 0, 1, 2, 2, 1, 0, 0, 0,
-	1, 0, 0, 0, 0, 1, 2, 2, 1, 0, 0,
-	0, 0, 0, 0, 0, 1, 2, 2, 1, 0, 0,
-	0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0
-};
-
-static unsigned int Buffer[11 * 16];
-
-static void Draw()
-{
-	Graphics::DrawBuffer(Buffer, MousePrevX, MousePrevY, 11, 16);
-	Graphics::GetBuffer(Buffer, MouseX, MouseY, 11, 16);
-
-	register int cy = MouseY, cx = MouseX, ly = MouseY + 16, lx = MouseX + 11;
-	while (cy < ly)
-	{
-		while (cx < lx)
-		{
-			switch (Cursor[(cx - MouseX) + (cy - MouseY) * 11])
-			{
-			case 1:
-				if (cx < 800) framebuffer[cx + cy * 800] = 0;
-				break;
-			case 2:
-				if (cx < 800) framebuffer[cx + cy * 800] = 0xFFFFFF;
-				break;
-			}
-			cx++;
-		}
-		cx = MouseX;
-		cy++;
-	}
-}
+static char LeftButton = 0, RightButton = 0;
 
 static void Handler(struct regs *r)
 {
-	register char AccX = 0, AccY = 0;
+	char AccX = 0, AccY = 0;
 
 	switch (Cycle)
 	{
@@ -94,14 +41,6 @@ static void Handler(struct regs *r)
 	if (MouseY >= 600) MouseY = 599;
 	if (MouseX < 0) MouseX = 0;
 	if (MouseY < 0) MouseY = 0;
-
-	Draw();
-
-	if (LeftButton) GUI::MousePress(1, MouseX, MouseY);
-	else GUI::MouseRelease(1, MouseX, MouseY);
-
-	//if (RightButton) GUI::MousePress(2, MouseX, MouseY);
-	//else GUI::MouseRelease(2, MouseX, MouseY);
 
 	MousePrevX = MouseX;
 	MousePrevY = MouseY;
@@ -146,6 +85,16 @@ int Mouse::GetY()
 	return MouseY;
 }
 
+int Mouse::GetLeft()
+{
+	return LeftButton;
+}
+
+int Mouse::GetRight()
+{
+	return RightButton;
+}
+
 void Mouse::Init()
 {
 	unsigned char status;
@@ -168,7 +117,5 @@ void Mouse::Init()
 	Write(0xF4);
 	Read();
 
-	framebuffer = Graphics::GetFramebuffer();
-	Graphics::GetBuffer(Buffer, 0, 0, 11, 16);
 	IRQ::InstallHandler(12, Handler);
 }

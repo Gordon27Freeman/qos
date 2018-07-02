@@ -15,7 +15,6 @@ extern "C" void init(multiboot_header *multiboot, unsigned int magic)
 {
 	if (magic != MULTIBOOT_BOOTLOADER_MAGIC) asm volatile("cli; hlt;");
 
-	Graphics::Init(multiboot->framebuffer_addr);
 	GDT::Init();
 	IDT::Init();
 	ISR::Init();
@@ -24,4 +23,5 @@ extern "C" void init(multiboot_header *multiboot, unsigned int magic)
 	Mouse::Init();
 	Keyboard::Init();
 	Memory::Init(multiboot->mem_upper + multiboot->mem_lower);
+	Graphics::Init(multiboot->framebuffer_addr);
 }

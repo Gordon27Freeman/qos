@@ -1,5 +1,6 @@
 #include <graphics.h>
 #include <font.h>
+#include <mm.h>
 
 #ifdef ARCH_i686
 #include <i686/memory.h>
@@ -10,11 +11,6 @@ using namespace Graphics;
 static int mask[8] = { 128, 64, 32, 16, 8, 4, 2, 1 };
 static unsigned int *framebuffer;
 extern struct Font VGAFont;
-
-unsigned int *Graphics::GetFramebuffer()
-{
-	return framebuffer;
-}
 
 void Graphics::Init(unsigned long long addr)
 {
@@ -92,26 +88,14 @@ void Graphics::FillRect(unsigned int *buffer, int bufferWidth, int x, int y, int
 	}
 }
 
-void Graphics::DrawBuffer(unsigned int *buffer, int x, int y, int w, int h)
+void Graphics::DrawBuffer(unsigned int *dest, unsigned int *buffer, int dw, int dh, int x, int y, int w, int h)
 {
 	register int cy = y, l = y + h, width;
-	if ((x + w) < 800) width = w * 4;
-	else width = (800 * 4) % (x * 4);
+	if ((x + w) < dw) width = w * 4;
+	else width = (dw * 4) % (x * 4);
 	while (cy < l)
 	{
-		memcpy((void *)&framebuffer[x + cy * 800], (void *)&buffer[(cy - y) * w], width);
-		cy++;
-	}
-}
-
-void Graphics::GetBuffer(unsigned int *buffer, int x, int y, int w, int h)
-{
-	register int cy = y, l = y + h, width;
-	if ((x + w) < 800) width = w * 4;
-	else width = (800 * 4) % (x * 4);
-	while (cy < l)
-	{
-		memcpy((void *)&buffer[(cy - y) * w], (void *)&framebuffer[x + cy * 800], width);
+		memcpy((void *)&dest[x + cy * dw], (void *)&buffer[(cy - y) * w], width);
 		cy++;
 	}
 }
