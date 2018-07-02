@@ -224,7 +224,7 @@ void GUI::CreateWindow(const char *title, int x, int y, int w, int h)
 	desktop[0].w = w;
 	desktop[0].h = h;
 	unsigned int *new_buffer = (unsigned int *)Memory::Alloc(w * h * 16);
-	desktop[0].buffer = new_buffer + 10000;
+	desktop[0].buffer = new_buffer + (w * h / 100);
 	DrawWindow(desktop[0]);
 	windowCount++;
 }
