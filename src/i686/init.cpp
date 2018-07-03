@@ -21,6 +21,6 @@ extern "C" void init(multiboot_header *multiboot, unsigned int magic)
 	Timer::Init();
 	Mouse::Init();
 	Keyboard::Init();
-	Memory::Init(multiboot->mem_upper + multiboot->mem_lower);
+	Memory::Init(multiboot->mem_upper);
 	Graphics::Init(multiboot->framebuffer_addr);
 }

@@ -5,7 +5,7 @@ using namespace Memory;
 #define USED 0xa1
 #define UNUSED 0x01
 
-extern unsigned int kernel_end;
+extern unsigned int kernel_end, kernel_start;
 
 struct Allocation
 {
@@ -21,7 +21,7 @@ static unsigned int freeMemory;
 
 void Memory::Init(unsigned int totalMemory)
 {
-	freeMemory = totalMemory * 1024 - (int)&kernel_end;
+	freeMemory = totalMemory * 1024 - ((int)&kernel_end - (int)&kernel_start);
 	memoryMap[0].addr = &kernel_end;
 	memoryMap[0].size = freeMemory;
 	memoryMap[0].type = FREE;
@@ -35,8 +35,8 @@ void Memory::Init(unsigned int totalMemory)
 
 void *Memory::Alloc(size_t size)
 {
-	int n = 0, f = 0;
-	while (n < 100000)
+	int n = 100000, f = 0;
+	while (n >= 0)
 	{
 		if (memoryMap[n].type == FREE && memoryMap[n].size >= size)
 		{
@@ -56,6 +56,7 @@ void *Memory::Alloc(size_t size)
 			memoryMap[n].prev = f;
 			return (void *)memoryMap[f].addr;
 		}
+		n--;
 	}
 	return 0;
 }
@@ -65,7 +66,7 @@ void Memory::Free(void *obj)
 	int n = 0;
 	while (n < 100000)
 	{
-		if (memoryMap[n].addr == (unsigned int *)obj)
+		if ((int)memoryMap[n].addr == (int)obj)
 		{
 			memoryMap[n].type = FREE;
 			if (memoryMap[memoryMap[n].next].type == FREE && memoryMap[n].next != 0)
@@ -74,7 +75,7 @@ void Memory::Free(void *obj)
 				memoryMap[n].size += memoryMap[memoryMap[n].next].size;
 				memoryMap[n].next = memoryMap[memoryMap[n].next].next;
 			}
-			if (memoryMap[memoryMap[n].prev].type == FREE)
+			if (memoryMap[memoryMap[n].prev].type == FREE && memoryMap[n].prev != 0)
 			{
 				memoryMap[n].type = UNUSED;
 				memoryMap[memoryMap[n].prev].size += memoryMap[n].size;

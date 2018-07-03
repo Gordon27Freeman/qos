@@ -221,6 +221,7 @@ static void MouseClick()
 						else if (MouseX < (desktop[0].x + desktop[0].w - 38) && MouseX > (desktop[0].x + desktop[0].w - 55) && MouseY < (desktop[0].y + 20))
 						{
 							desktop[0].s = 1;
+							break;
 						}
 						else if (MouseY < (desktop[0].y + 22))
 						{
@@ -228,6 +229,7 @@ static void MouseClick()
 							desktop[0].c = 1;
 							desktop[0].cx = MouseX;
 							desktop[0].cy = MouseY;
+							break;
 						}
 						break;
 					}
@@ -281,6 +283,8 @@ void GUI::CreateWindow(const char *title, int x, int y, int w, int h)
 
 void GUI::DestroyWindow()
 {
+	Memory::Free((void *)&desktop[0].title[0]);
+	Memory::Free((void *)&desktop[0].buffer[0]);
 	for(int i = 0; i < windowCount; i++)
 	{
 		desktop[i].title = desktop[i + 1].title;
