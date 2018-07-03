@@ -23,7 +23,12 @@ void Graphics::Init(unsigned long long addr)
 	}
 }
 
-void Graphics::Line(unsigned int *buffer, int bufferWidth, int x0, int y0, int x1, int y1, unsigned int color)
+void Graphics::SetPixel(unsigned int *buffer, int bw, int bh, int x, int y, unsigned int color)
+{
+	if (x < bw && y < bh) buffer[x + y * bw] = color;
+}
+
+void Graphics::Line(unsigned int *buffer, int bw, int bh, int x0, int y0, int x1, int y1, unsigned int color)
 {
 	int dx, dy;
 	if (x1 >= x0) dx = x1 - x0;
@@ -37,50 +42,50 @@ void Graphics::Line(unsigned int *buffer, int bufferWidth, int x0, int y0, int x
  
 	while (x0 != x1 && y0 != y1)
 	{
-		buffer[x0 + y0 * bufferWidth] = color;
+		buffer[x0 + y0 * bw] = color;
 		e2 = err;
 		if (e2 > -dx) { err -= dy; x0 += sx; }
 		if (e2 < dy) { err += dx; y0 += sy; }
 	}
-	buffer[x0 + y0 * bufferWidth] = color;
+	buffer[x0 + y0 * bw] = color;
 }
 
-void Graphics::HorizontalLine(unsigned int *buffer, int bufferWidth, int x, int y, int length, unsigned int color)
+void Graphics::HorizontalLine(unsigned int *buffer, int bw, int bh, int x, int y, int length, unsigned int color)
 {
 	int cx = x, l = x + length;
-	while (cx < l && cx < bufferWidth)
+	if (y < bh) while (cx < l && cx < bw)
 	{
-		buffer[cx + y * bufferWidth] = color;
+		buffer[cx + y * bw] = color;
 		cx++;
 	}
 }
 
-void Graphics::VerticalLine(unsigned int *buffer, int bufferWidth, int x, int y, int length, unsigned int color)
+void Graphics::VerticalLine(unsigned int *buffer, int bw, int bh, int x, int y, int length, unsigned int color)
 {
 	int cy = y, l = y + length;
-	if (x < bufferWidth) while (cy < l)
+	if (x < bw) while (cy < l)
 	{
-		buffer[x + cy * bufferWidth] = color;
+		buffer[x + cy * bw] = color;
 		cy++;
 	}
 }
 
-void Graphics::Rect(unsigned int *buffer, int bufferWidth, int x, int y, int w, int h, unsigned int color)
+void Graphics::Rect(unsigned int *buffer, int bw, int bh, int x, int y, int w, int h, unsigned int color)
 {
-	HorizontalLine(buffer, bufferWidth, x, y, w, color);
-	HorizontalLine(buffer, bufferWidth, x, y + h, w, color);
-	VerticalLine(buffer, bufferWidth, x, y, h, color);
-	VerticalLine(buffer, bufferWidth, x + w, y, h, color);
+	HorizontalLine(buffer, bw, bh, x, y, w, color);
+	HorizontalLine(buffer, bw, bh, x, y + h, w, color);
+	VerticalLine(buffer, bw, bh, x, y, h, color);
+	VerticalLine(buffer, bw, bh, x + w, y, h, color);
 }
 
-void Graphics::FillRect(unsigned int *buffer, int bufferWidth, int x, int y, int w, int h, unsigned int color)
+void Graphics::FillRect(unsigned int *buffer, int bw, int bh, int x, int y, int w, int h, unsigned int color)
 {
 	int cy = y, cx = x, ly = y + h, lx = x + w;
-	while (cy < ly)
+	while (cy < ly && cy < bh)
 	{
-		while (cx < lx && cx < bufferWidth)
+		while (cx < lx && cx < bw)
 		{
-			buffer[cx + cy * bufferWidth] = color;
+			buffer[cx + cy * bw] = color;
 			cx++;
 		}
 		cx = x;
@@ -88,15 +93,15 @@ void Graphics::FillRect(unsigned int *buffer, int bufferWidth, int x, int y, int
 	}
 }
 
-void Graphics::DrawBuffer(unsigned int *dest, unsigned int *buffer, int dw, int dh, int x, int y, int w, int h)
+void Graphics::DrawBuffer(unsigned int *dest, unsigned int *buffer, int bw, int bh, int x, int y, int w, int h)
 {
 	int cy = y, l = y + h, width;
-	if ((x + w) < dw) width = w * 4;
-	else width = (dw * 4) % (x * 4);
-	while (cy < l && cy < (y + dh))
+	if ((x + w) < bw) width = w * 4;
+	else width = (bw * 4) % (x * 4);
+	while (cy < l && cy < bh)
 	{
 		for(int cx = x; cx < (x + w); cx++)
-		if(cx < dw && cx > -1 && cy > -1) dest[cx + cy * dw] = buffer[(cx - x) + (cy - y) * w];
+			if(cx < bw && cx > -1 && cy > -1) dest[cx + cy * bw] = buffer[(cx - x) + (cy - y) * w];
 		cy++;
 	}
 }
@@ -106,17 +111,17 @@ void Graphics::DrawFullscreenBuffer(unsigned int *buffer)
 	memcpy((void *)&framebuffer[0], (void *)&buffer[0], 800 * 600 * 4);
 }
 
-void Graphics::DrawChar(unsigned int *buffer, int bufferWidth, char c, int x, int y, unsigned int color)
+void Graphics::DrawChar(unsigned int *buffer, int bw, int bh, char c, int x, int y, unsigned int color)
 {
 	int cx = 0, cy = 0;
 	unsigned char *glyph = &VGAFont.Bitmap[(c - 31) * 16];
  
-	while(cy < 16)
+	while(cy < 16 && (y + cy) < bh)
 	{
-		while(cx < 8)
+		while(cx < 8 && (x + cx) < bw)
 		{
-			if (glyph[cy] & mask[cx] && (x + cx) < bufferWidth && (x + cx) > 0)
-				buffer[(x + cx) + (y + cy) * bufferWidth] = color;
+			if (glyph[cy] & mask[cx] && (x + cx) > 0)
+				buffer[(x + cx) + (y + cy) * bw] = color;
 			cx++;
 		}
 		cx = 0;
@@ -124,29 +129,29 @@ void Graphics::DrawChar(unsigned int *buffer, int bufferWidth, char c, int x, in
 	}
 }
 
-void Graphics::DrawString(unsigned int *buffer, int bufferWidth, const char *s, int x, int y, unsigned int color)
+void Graphics::DrawString(unsigned int *buffer, int bw, int bh, const char *s, int x, int y, unsigned int color)
 {
 	int cx = 0;
 	while(*s)
 	{
-		DrawChar(buffer, bufferWidth, *s, x + cx, y, color);
+		DrawChar(buffer, bw, bh, *s, x + cx, y, color);
 		s++;
 		cx += 8;
 	}
 }
 
-void Graphics::HorizontalGradient(unsigned int *buffer, int bufferWidth, int x, int y, int w, int h, unsigned int startColor, unsigned int endColor)
+void Graphics::HorizontalGradient(unsigned int *buffer, int bw, int bh, int x, int y, int w, int h, unsigned int startColor, unsigned int endColor)
 {
 	float ecb = endColor & 0xFF;
 	float ecg = (endColor >> 8) & 0xFF;
 	float ecr = (endColor >> 16) & 0xFF;
 	int cx = x, cy = y, lx = x + w, ly = y + h;
-	while (cy < ly)
+	while (cy < ly && cy < bh)
 	{
 		float scb = startColor & 0xFF;
 		float scg = (startColor >> 8) & 0xFF;
 		float scr = (startColor >> 16) & 0xFF;
-		while (cx < lx)
+		while (cx < lx && cx < bw)
 		{
 			if (scb < ecb) scb += (ecb - scb) / w;
 			else if (scb > ecb) scb -= (scb - ecb) / w;
@@ -155,7 +160,7 @@ void Graphics::HorizontalGradient(unsigned int *buffer, int bufferWidth, int x, 
 			if (scr < ecr) scr += (ecr - scr) / w;
 			else if (scr > ecr) scr -= (scr - ecr) / w;
 
-			buffer[cx + cy * bufferWidth] = (int)scb + ((int)scg << 8) + ((int)scr << 16);
+			buffer[cx + cy * bw] = (int)scb + ((int)scg << 8) + ((int)scr << 16);
 			cx++;
 		}
 		cx = x;
@@ -163,18 +168,18 @@ void Graphics::HorizontalGradient(unsigned int *buffer, int bufferWidth, int x, 
 	}
 }
 
-void Graphics::VerticalGradient(unsigned int *buffer, int bufferWidth, int x, int y, int w, int h, unsigned int startColor, unsigned int endColor)
+void Graphics::VerticalGradient(unsigned int *buffer, int bw, int bh, int x, int y, int w, int h, unsigned int startColor, unsigned int endColor)
 {
 	float ecb = endColor & 0xFF;
 	float ecg = (endColor >> 8) & 0xFF;
 	float ecr = (endColor >> 16) & 0xFF;
 	int cx = x, cy = y, lx = x + w, ly = y + h;
-	while (cx < lx)
+	while (cx < lx && cx < bw)
 	{
 		float scb = startColor & 0xFF;
 		float scg = (startColor >> 8) & 0xFF;
 		float scr = (startColor >> 16) & 0xFF;
-		while (cy < ly)
+		while (cy < ly && cy < bh)
 		{
 			if (scb < ecb) scb += (ecb - scb) / w;
 			else if (scb > ecb) scb -= (scb - ecb) / w;
@@ -183,7 +188,7 @@ void Graphics::VerticalGradient(unsigned int *buffer, int bufferWidth, int x, in
 			if (scr < ecr) scr += (ecr - scr) / w;
 			else if (scr > ecr) scr -= (scr - ecr) / w;
 
-			buffer[cx + cy * bufferWidth] = (int)scb + ((int)scg << 8) + ((int)scr << 16);
+			buffer[cx + cy * bw] = (int)scb + ((int)scg << 8) + ((int)scr << 16);
 			cy++;
 		}
 		cx++;

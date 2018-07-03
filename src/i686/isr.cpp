@@ -110,16 +110,15 @@ static const char *exceptionMessages[] =
 	"Reserved"
 };
 
-static unsigned int buffer[1000 * 1000];
-static unsigned int *framebuffer = buffer + 10000;
+static unsigned int framebuffer[800 * 600];
 
 extern "C" void FaultHandler(struct regs *r)
 {
 	if (r->int_no < 32)
 	{
-		Graphics::FillRect(framebuffer, 800, 0, 0, 800, 600, 0x303030);
-		Graphics::DrawString(framebuffer, 800, exceptionMessages[r->int_no], 16, 10, 0xffffff);
-		Graphics::DrawString(framebuffer, 800, "Exception Occured. System Halted!", 16, 28, 0xffffff);
+		Graphics::FillRect(framebuffer, 800, 600, 0, 0, 800, 600, 0x303030);
+		Graphics::DrawString(framebuffer, 800, 600, exceptionMessages[r->int_no], 16, 10, 0xffffff);
+		Graphics::DrawString(framebuffer, 800, 600, "Exception Occured. System Halted!", 16, 28, 0xffffff);
 		Graphics::DrawFullscreenBuffer(framebuffer);
 		while (1) asm volatile("cli; hlt;");
 	}
