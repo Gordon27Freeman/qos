@@ -5,6 +5,7 @@
 
 #ifdef ARCH_i686
 #include <i686/mouse.h>
+#include <i686/time.h>
 #endif
 
 using namespace GUI;
@@ -32,9 +33,59 @@ static unsigned int Cursor[11 * 19] =
 	0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0
 };
 
-static unsigned int Icon[16 * 16] = 
+#define BLUE 0x00105090
+#define BLUE1 0x001c338a
+#define BLUE2 0x002e469f
+#define BLUE3 0x003f57b0
+#define BLUE4 0x004962bf
+#define BLUE5 0x005870cd
+#define BLUE6 0x008098f3
+#define GRAY1 0x00bfbaaf
+#define GRAY2 0x00807d76
+#define GRAY3 0x00a7a49e
+#define GRAY4 0x008c887f
+#define BLACK 0x00101010
+#define ALPHA 0xff000000
+#define ALPH 0xff000000
+
+static unsigned int WindowIcon[16 * 16] =
 {
-	
+ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,
+ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,
+ALPHA,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,ALPHA,
+ALPHA,BLACK,BLUE1,BLUE1,BLUE2,BLUE2,BLUE3,BLUE3,BLUE4,BLUE4,BLUE5,BLUE5,BLUE6,BLUE6,BLACK,ALPHA,
+ALPHA,BLACK,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,BLACK,ALPHA,
+ALPHA,BLACK,GRAY1,GRAY2,GRAY2,GRAY2,GRAY2,GRAY2,GRAY1,GRAY3,GRAY3,GRAY3,GRAY3,GRAY1,BLACK,ALPHA,
+ALPHA,BLACK,GRAY1,GRAY2,GRAY2,GRAY2,GRAY2,GRAY2,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,BLACK,ALPHA,
+ALPHA,BLACK,GRAY1,GRAY2,GRAY2,GRAY2,GRAY2,GRAY2,GRAY1,GRAY3,GRAY3,GRAY3,GRAY3,GRAY1,BLACK,ALPHA,
+ALPHA,BLACK,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,BLACK,ALPHA,
+ALPHA,BLACK,GRAY1,GRAY3,GRAY3,GRAY3,GRAY3,GRAY3,GRAY3,GRAY3,GRAY3,GRAY3,GRAY3,GRAY1,BLACK,ALPHA,
+ALPHA,BLACK,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,BLACK,ALPHA,
+ALPHA,BLACK,GRAY1,GRAY4,GRAY4,GRAY4,GRAY1,GRAY1,GRAY1,GRAY1,GRAY4,GRAY4,GRAY4,GRAY1,BLACK,ALPHA,
+ALPHA,BLACK,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,BLACK,ALPHA,
+ALPHA,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,ALPHA,
+ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,
+ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA
+};
+
+static unsigned int QIcon[16 * 16] = 
+{
+	ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,
+	ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,BLUE,BLUE,BLUE,BLUE,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,
+	ALPH,ALPH,ALPH,ALPH,BLUE,BLUE,BLUE,BLUE,BLUE,BLUE,BLUE,BLUE,ALPH,ALPH,ALPH,ALPH,
+	ALPH,ALPH,ALPH,ALPH,BLUE,BLUE,ALPH,ALPH,ALPH,ALPH,BLUE,BLUE,ALPH,ALPH,ALPH,ALPH,
+	ALPH,ALPH,ALPH,BLUE,BLUE,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,BLUE,BLUE,ALPH,ALPH,ALPH,
+	ALPH,ALPH,ALPH,BLUE,BLUE,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,BLUE,BLUE,ALPH,ALPH,ALPH,
+	ALPH,ALPH,ALPH,BLUE,BLUE,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,BLUE,BLUE,ALPH,ALPH,ALPH,
+	ALPH,ALPH,ALPH,BLUE,BLUE,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,BLUE,BLUE,ALPH,ALPH,ALPH,
+	ALPH,ALPH,ALPH,BLUE,BLUE,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,BLUE,BLUE,ALPH,ALPH,ALPH,
+	ALPH,ALPH,ALPH,BLUE,BLUE,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,BLUE,BLUE,ALPH,ALPH,ALPH,
+	ALPH,ALPH,ALPH,BLUE,BLUE,ALPH,ALPH,ALPH,BLUE,BLUE,ALPH,BLUE,BLUE,ALPH,ALPH,ALPH,
+	ALPH,ALPH,ALPH,BLUE,BLUE,ALPH,ALPH,ALPH,BLUE,BLUE,BLUE,BLUE,BLUE,ALPH,ALPH,ALPH,
+	ALPH,ALPH,ALPH,BLUE,BLUE,BLUE,ALPH,ALPH,ALPH,ALPH,BLUE,BLUE,ALPH,ALPH,ALPH,ALPH,
+	ALPH,ALPH,ALPH,ALPH,BLUE,BLUE,BLUE,BLUE,BLUE,BLUE,BLUE,BLUE,BLUE,BLUE,ALPH,ALPH,
+	ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,BLUE,BLUE,BLUE,BLUE,ALPH,ALPH,BLUE,BLUE,ALPH,ALPH,
+	ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH
 };
 
 struct Window
@@ -49,7 +100,16 @@ struct Window
 
 struct Window desktop[0xff];
 static int windowCount = 0;
+static int changeActive = 0;
 static unsigned int framebuffer[800 * 600];
+
+static void DrawIcon(unsigned int *buffer, int bw, int bh, unsigned int *icon, int x, int y)
+{
+	for (int cy = y; cy < y + 16; cy++)
+		for (int cx = x; cx < x + 16; cx++)
+			if (cx > -1 && cy > -1 && cx < bw && cy < bh && (icon[(cx - x) + (cy - y) * 16] >> 24) != 0xff)
+				buffer[cx + cy * bw] = icon[(cx - x) + (cy - y) * 16];
+}
 
 static void DrawWindow(struct Window window)
 {
@@ -88,6 +148,7 @@ static void DrawWindow(struct Window window)
 	Graphics::Line(window.buffer, window.w, window.h, window.w - 9, 8, window.w - 15, 14, 0x000000);
 
 	Graphics::DrawString(window.buffer, window.w, window.h, window.title, 24, 4, 0xe0e0e0);
+	DrawIcon(window.buffer, window.w, window.h, WindowIcon, 4, 3);
 }
 
 static void DrawTaskbar()
@@ -100,17 +161,55 @@ static void DrawTaskbar()
 	Graphics::VerticalLine(framebuffer, 800, 600, 2, 578, 19, 0xf0c0b0);
 	Graphics::HorizontalLine(framebuffer, 800, 600, 2, 597, 62, 0x907060);
 	Graphics::VerticalLine(framebuffer, 800, 600, 63, 578, 19, 0x907060);
-	Graphics::DrawString(framebuffer, 800, 600, "Menu", 24, 580, 0x101010);
+	Graphics::DrawString(framebuffer, 800, 600, "Menu", 24, 581, 0x101010);
+	DrawIcon(framebuffer, 800, 600, QIcon, 4, 580);
 
+	unsigned char hour = 0, minute = 0, second = 0;
+	Time::GetTime(&hour, &minute, &second);
+	char h[3], m[3];
+	itoa(h, 10, hour);
+	itoa(m, 10, minute);
+	if (!h[1])
+	{
+		h[1] = h[0];
+		h[0] = '0';
+	}
+	if (!m[1])
+	{
+		m[1] = m[0];
+		m[0] = '0';
+	}
+	Graphics::DrawString(framebuffer, 800, 600, h, 754, 581, 0x101010);
+	Graphics::DrawString(framebuffer, 800, 600, ":", 770, 581, 0x101010);
+	Graphics::DrawString(framebuffer, 800, 600, m, 778, 581, 0x101010);
+	Graphics::HorizontalLine(framebuffer, 800, 600, 750, 578, 47, 0x907060);
+	Graphics::VerticalLine(framebuffer, 800, 600, 750, 578, 19, 0x907060);
+	Graphics::HorizontalLine(framebuffer, 800, 600, 751, 597, 47, 0xf0c0b0);
+	Graphics::VerticalLine(framebuffer, 800, 600, 797, 578, 19, 0xf0c0b0);
+
+	int rightBottom, leftTop, color;
 	for(int i = 0; i < windowCount; i++)
 	{
-		if (i == 5) break;
-		Graphics::FillRect(framebuffer, 800, 600, 68 + 114 * i, 578, 110, 19, 0xb0a090);
-		Graphics::HorizontalLine(framebuffer, 800, 600, 68 + 114 * i, 578, 110, 0xf0c0b0);
-		Graphics::VerticalLine(framebuffer, 800, 600, 68 + 114 * i, 578, 19, 0xf0c0b0);
-		Graphics::HorizontalLine(framebuffer, 800, 600, 68 + 114 * i, 597, 110, 0x907060);
-		Graphics::VerticalLine(framebuffer, 800, 600, 177 + 114 * i, 578, 19, 0x907060);
-		Graphics::DrawString(framebuffer, 800, 600, desktop[i].title, 90 + 114 * i, 580, 0x101010);
+		if (i == 0 && !desktop[0].s)
+		{
+			rightBottom = 0xf0c0b0;
+			leftTop = 0x907060;
+			color = 0xa09080;
+		}
+		else if (i == 5) break;
+		else
+		{
+			rightBottom = 0x907060;
+			leftTop = 0xf0c0b0;
+			color = 0xb0a090;
+		}
+		Graphics::FillRect(framebuffer, 800, 600, 68 + 114 * i, 578, 110, 19, color);
+		Graphics::HorizontalLine(framebuffer, 800, 600, 68 + 114 * i, 578, 110, leftTop);
+		Graphics::VerticalLine(framebuffer, 800, 600, 68 + 114 * i, 578, 19, leftTop);
+		Graphics::HorizontalLine(framebuffer, 800, 600, 68 + 114 * i, 597, 110, rightBottom);
+		Graphics::VerticalLine(framebuffer, 800, 600, 177 + 114 * i, 578, 19, rightBottom);
+		Graphics::DrawString(framebuffer, 800, 600, desktop[i].title, 90 + 114 * i, 581, 0x101010);
+		DrawIcon(framebuffer, 800, 600, WindowIcon, 71 + 114 * i, 580);
 	}
 }
 
@@ -141,9 +240,10 @@ static void DrawMouse()
 
 static void MouseClick()
 {
+	struct Window win;
 	int MouseY = Mouse::GetY();
 	int MouseX = Mouse::GetX();
-	int n = 0;
+	int n = (MouseX - 68) / 114;
 
 	if (desktop[0].c == 1)
 	{
@@ -152,8 +252,102 @@ static void MouseClick()
 		desktop[0].cx = MouseX;
 		desktop[0].cy = MouseY;
 	}
+	else if (MouseY > 580 && !changeActive)
+	{
+		if (MouseX > 68 && MouseX < 638 && n < windowCount)
+		{
+			if (n && !desktop[n].s)
+			{
+				win.title = desktop[n].title;
+				win.x = desktop[n].x;
+				win.y = desktop[n].y;
+				win.w = desktop[n].w;
+				win.h = desktop[n].h;
+				win.s = desktop[n].s;
+				win.buffer = desktop[n].buffer;
+				for(int i = n; i > 0; i--)
+				{
+					desktop[i].title = desktop[i - 1].title;
+					desktop[i].x = desktop[i - 1].x;
+					desktop[i].y = desktop[i - 1].y;
+					desktop[i].w = desktop[i - 1].w;
+					desktop[i].h = desktop[i - 1].h;
+					desktop[i].s = desktop[i - 1].s;
+					desktop[i].buffer = desktop[i - 1].buffer;
+				}
+				desktop[0].title = win.title;
+				desktop[0].x = win.x;
+				desktop[0].y = win.y;
+				desktop[0].w = win.w;
+				desktop[0].h = win.h;
+				desktop[0].s = win.s;
+				desktop[0].buffer = win.buffer;
+			}
+			else if (n && desktop[n].s)
+			{
+				win.title = desktop[n].title;
+				win.x = desktop[n].x;
+				win.y = desktop[n].y;
+				win.w = desktop[n].w;
+				win.h = desktop[n].h;
+				win.s = 0;
+				win.buffer = desktop[n].buffer;
+				for(int i = n; i > 0; i--)
+				{
+					desktop[i].title = desktop[i - 1].title;
+					desktop[i].x = desktop[i - 1].x;
+					desktop[i].y = desktop[i - 1].y;
+					desktop[i].w = desktop[i - 1].w;
+					desktop[i].h = desktop[i - 1].h;
+					desktop[i].s = desktop[i - 1].s;
+					desktop[i].buffer = desktop[i - 1].buffer;
+				}
+				desktop[0].title = win.title;
+				desktop[0].x = win.x;
+				desktop[0].y = win.y;
+				desktop[0].w = win.w;
+				desktop[0].h = win.h;
+				desktop[0].s = win.s;
+				desktop[0].buffer = win.buffer;
+			}
+			else if (!n && !desktop[n].s)
+			{
+				desktop[0].s = 1;
+				win.title = desktop[0].title;
+				win.x = desktop[0].x;
+				win.y = desktop[0].y;
+				win.w = desktop[0].w;
+				win.h = desktop[0].h;
+				win.s = desktop[0].s;
+				win.buffer = desktop[0].buffer;
+				for(int i = 0; i < windowCount; i++)
+				{
+					desktop[i].title = desktop[i + 1].title;
+					desktop[i].x = desktop[i + 1].x;
+					desktop[i].y = desktop[i + 1].y;
+					desktop[i].w = desktop[i + 1].w;
+					desktop[i].h = desktop[i + 1].h;
+					desktop[i].s = desktop[i + 1].s;
+					desktop[i].buffer = desktop[i + 1].buffer;
+				}
+				desktop[windowCount - 1].title = win.title;
+				desktop[windowCount - 1].x = win.x;
+				desktop[windowCount - 1].y = win.y;
+				desktop[windowCount - 1].w = win.w;
+				desktop[windowCount - 1].h = win.h;
+				desktop[windowCount - 1].s = win.s;
+				desktop[windowCount - 1].buffer = win.buffer;
+			}
+			else if (!n && desktop[n].s)
+			{
+				desktop[0].s = 0;
+			}
+			changeActive = 1;
+		}
+	}
 	else
 	{
+		n = 0;
 		while (n < 0xff)
 		{
 			if (!desktop[n].s)
@@ -162,7 +356,6 @@ static void MouseClick()
 				{
 					if (MouseY < (desktop[n].y + desktop[n].h) && MouseY > desktop[n].y)
 					{
-						struct Window win;
 						win.title = desktop[n].title;
 						win.x = desktop[n].x;
 						win.y = desktop[n].y;
@@ -221,6 +414,30 @@ static void MouseClick()
 						else if (MouseX < (desktop[0].x + desktop[0].w - 38) && MouseX > (desktop[0].x + desktop[0].w - 55) && MouseY < (desktop[0].y + 20))
 						{
 							desktop[0].s = 1;
+							win.title = desktop[0].title;
+							win.x = desktop[0].x;
+							win.y = desktop[0].y;
+							win.w = desktop[0].w;
+							win.h = desktop[0].h;
+							win.s = desktop[0].s;
+							win.buffer = desktop[0].buffer;
+							for(int i = 0; i < windowCount; i++)
+							{
+								desktop[i].title = desktop[i + 1].title;
+								desktop[i].x = desktop[i + 1].x;
+								desktop[i].y = desktop[i + 1].y;
+								desktop[i].w = desktop[i + 1].w;
+								desktop[i].h = desktop[i + 1].h;
+								desktop[i].s = desktop[i + 1].s;
+								desktop[i].buffer = desktop[i + 1].buffer;
+							}
+							desktop[windowCount - 1].title = win.title;
+							desktop[windowCount - 1].x = win.x;
+							desktop[windowCount - 1].y = win.y;
+							desktop[windowCount - 1].w = win.w;
+							desktop[windowCount - 1].h = win.h;
+							desktop[windowCount - 1].s = win.s;
+							desktop[windowCount - 1].buffer = win.buffer;
 							break;
 						}
 						else if (MouseY < (desktop[0].y + 22))
@@ -255,6 +472,7 @@ void GUI::Update()
 	Graphics::DrawFullscreenBuffer(framebuffer);
 	if(Mouse::GetLeft()) MouseClick();
 	else desktop[0].c = 0;
+	if(!Mouse::GetLeft() && changeActive) changeActive = 0;
 }
 
 void GUI::CreateWindow(const char *title, int x, int y, int w, int h)
