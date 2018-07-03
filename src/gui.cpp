@@ -1,9 +1,11 @@
 #include <gui.h>
 #include <graphics.h>
+#include <controls.h>
 #include <string.h>
 #include <mm.h>
 
 #ifdef ARCH_i686
+#include <i686/memory.h>
 #include <i686/mouse.h>
 #include <i686/time.h>
 #endif
@@ -34,6 +36,7 @@ static unsigned int Cursor[11 * 19] =
 };
 
 #define BLUE 0x00105090
+#define ALPH 0xff000000
 #define BLUE1 0x001c338a
 #define BLUE2 0x002e469f
 #define BLUE3 0x003f57b0
@@ -46,26 +49,25 @@ static unsigned int Cursor[11 * 19] =
 #define GRAY4 0x008c887f
 #define BLACK 0x00101010
 #define ALPHA 0xff000000
-#define ALPH 0xff000000
 
 static unsigned int WindowIcon[16 * 16] =
 {
-ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,
-ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,
-ALPHA,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,ALPHA,
-ALPHA,BLACK,BLUE1,BLUE1,BLUE2,BLUE2,BLUE3,BLUE3,BLUE4,BLUE4,BLUE5,BLUE5,BLUE6,BLUE6,BLACK,ALPHA,
-ALPHA,BLACK,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,BLACK,ALPHA,
-ALPHA,BLACK,GRAY1,GRAY2,GRAY2,GRAY2,GRAY2,GRAY2,GRAY1,GRAY3,GRAY3,GRAY3,GRAY3,GRAY1,BLACK,ALPHA,
-ALPHA,BLACK,GRAY1,GRAY2,GRAY2,GRAY2,GRAY2,GRAY2,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,BLACK,ALPHA,
-ALPHA,BLACK,GRAY1,GRAY2,GRAY2,GRAY2,GRAY2,GRAY2,GRAY1,GRAY3,GRAY3,GRAY3,GRAY3,GRAY1,BLACK,ALPHA,
-ALPHA,BLACK,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,BLACK,ALPHA,
-ALPHA,BLACK,GRAY1,GRAY3,GRAY3,GRAY3,GRAY3,GRAY3,GRAY3,GRAY3,GRAY3,GRAY3,GRAY3,GRAY1,BLACK,ALPHA,
-ALPHA,BLACK,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,BLACK,ALPHA,
-ALPHA,BLACK,GRAY1,GRAY4,GRAY4,GRAY4,GRAY1,GRAY1,GRAY1,GRAY1,GRAY4,GRAY4,GRAY4,GRAY1,BLACK,ALPHA,
-ALPHA,BLACK,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,BLACK,ALPHA,
-ALPHA,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,ALPHA,
-ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,
-ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA
+	ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,
+	ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,
+	ALPHA,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,ALPHA,
+	ALPHA,BLACK,BLUE1,BLUE1,BLUE2,BLUE2,BLUE3,BLUE3,BLUE4,BLUE4,BLUE5,BLUE5,BLUE6,BLUE6,BLACK,ALPHA,
+	ALPHA,BLACK,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,BLACK,ALPHA,
+	ALPHA,BLACK,GRAY1,GRAY2,GRAY2,GRAY2,GRAY2,GRAY2,GRAY1,GRAY3,GRAY3,GRAY3,GRAY3,GRAY1,BLACK,ALPHA,
+	ALPHA,BLACK,GRAY1,GRAY2,GRAY2,GRAY2,GRAY2,GRAY2,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,BLACK,ALPHA,
+	ALPHA,BLACK,GRAY1,GRAY2,GRAY2,GRAY2,GRAY2,GRAY2,GRAY1,GRAY3,GRAY3,GRAY3,GRAY3,GRAY1,BLACK,ALPHA,
+	ALPHA,BLACK,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,BLACK,ALPHA,
+	ALPHA,BLACK,GRAY1,GRAY3,GRAY3,GRAY3,GRAY3,GRAY3,GRAY3,GRAY3,GRAY3,GRAY3,GRAY3,GRAY1,BLACK,ALPHA,
+	ALPHA,BLACK,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,BLACK,ALPHA,
+	ALPHA,BLACK,GRAY1,GRAY4,GRAY4,GRAY4,GRAY1,GRAY1,GRAY1,GRAY1,GRAY4,GRAY4,GRAY4,GRAY1,BLACK,ALPHA,
+	ALPHA,BLACK,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,GRAY1,BLACK,ALPHA,
+	ALPHA,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,ALPHA,
+	ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,
+	ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA
 };
 
 static unsigned int QIcon[16 * 16] = 
@@ -88,6 +90,12 @@ static unsigned int QIcon[16 * 16] =
 	ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH
 };
 
+struct Control
+{
+	unsigned int *pointer;
+	char type;
+};
+
 struct Window
 {
 	char *title;
@@ -96,6 +104,8 @@ struct Window
 	int px, py, pw, ph;
 	char c, s;
 	int cx, cy;
+	struct Control *controls;
+	int controlCount;
 };
 
 struct Window desktop[0xff];
@@ -109,6 +119,19 @@ static void DrawIcon(unsigned int *buffer, int bw, int bh, unsigned int *icon, i
 		for (int cx = x; cx < x + 16; cx++)
 			if (cx > -1 && cy > -1 && cx < bw && cy < bh && (icon[(cx - x) + (cy - y) * 16] >> 24) != 0xff)
 				buffer[cx + cy * bw] = icon[(cx - x) + (cy - y) * 16];
+}
+
+static void DrawControls(struct Window window)
+{
+	for (int i = 0; i < window.controlCount; i++)
+	{
+		switch(window.controls[i].type)
+		{
+		case CONTROL_BUTTON:
+			Controls::DrawButton(window.buffer, window.w, window.h, window.controls[i].pointer);
+			break;
+		}
+	}
 }
 
 static void DrawWindow(struct Window window)
@@ -149,6 +172,7 @@ static void DrawWindow(struct Window window)
 
 	Graphics::DrawString(window.buffer, window.w, window.h, window.title, 24, 4, 0xe0e0e0);
 	DrawIcon(window.buffer, window.w, window.h, WindowIcon, 4, 3);
+	DrawControls(window);
 }
 
 static void DrawTaskbar()
@@ -203,13 +227,23 @@ static void DrawTaskbar()
 			leftTop = 0xf0c0b0;
 			color = 0xb0a090;
 		}
-		Graphics::FillRect(framebuffer, 800, 600, 68 + 114 * i, 578, 110, 19, color);
-		Graphics::HorizontalLine(framebuffer, 800, 600, 68 + 114 * i, 578, 110, leftTop);
-		Graphics::VerticalLine(framebuffer, 800, 600, 68 + 114 * i, 578, 19, leftTop);
-		Graphics::HorizontalLine(framebuffer, 800, 600, 68 + 114 * i, 597, 110, rightBottom);
-		Graphics::VerticalLine(framebuffer, 800, 600, 177 + 114 * i, 578, 19, rightBottom);
-		Graphics::DrawString(framebuffer, 800, 600, desktop[i].title, 90 + 114 * i, 581, 0x101010);
-		DrawIcon(framebuffer, 800, 600, WindowIcon, 71 + 114 * i, 580);
+		char title[128];
+		if (strlen(desktop[i].title) > 12)
+		{
+			memcpy(title, desktop[i].title, 13);
+			title[9] = '.';
+			title[10] = '.';
+			title[11] = '.';
+			title[12] = 0;
+		}
+		else strcpy(title, desktop[i].title);
+		Graphics::FillRect(framebuffer, 800, 600, 68 + 130 * i, 578, 126, 19, color);
+		Graphics::HorizontalLine(framebuffer, 800, 600, 68 + 130 * i, 578, 126, leftTop);
+		Graphics::VerticalLine(framebuffer, 800, 600, 68 + 130 * i, 578, 19, leftTop);
+		Graphics::HorizontalLine(framebuffer, 800, 600, 68 + 130 * i, 597, 126, rightBottom);
+		Graphics::VerticalLine(framebuffer, 800, 600, 193 + 130 * i, 578, 19, rightBottom);
+		Graphics::DrawString(framebuffer, 800, 600, title, 90 + 130 * i, 581, 0x101010);
+		DrawIcon(framebuffer, 800, 600, WindowIcon, 71 + 130 * i, 580);
 	}
 }
 
@@ -238,9 +272,78 @@ static void DrawMouse()
 	}
 }
 
-static void MouseClick()
+static void MoveToZero(int n)
 {
 	struct Window win;
+	win.title = desktop[n].title;
+	win.x = desktop[n].x;
+	win.y = desktop[n].y;
+	win.w = desktop[n].w;
+	win.h = desktop[n].h;
+	win.s = desktop[n].s;
+	win.controls = desktop[n].controls;
+	win.controlCount = desktop[n].controlCount;
+	win.buffer = desktop[n].buffer;
+	for(int i = n; i > 0; i--)
+	{
+		desktop[i].title = desktop[i - 1].title;
+		desktop[i].x = desktop[i - 1].x;
+		desktop[i].y = desktop[i - 1].y;
+		desktop[i].w = desktop[i - 1].w;
+		desktop[i].h = desktop[i - 1].h;
+		desktop[i].s = desktop[i - 1].s;
+		desktop[i].controls = desktop[i - 1].controls;
+		desktop[i].controlCount = desktop[i - 1].controlCount;
+		desktop[i].buffer = desktop[i - 1].buffer;
+	}
+	desktop[0].title = win.title;
+	desktop[0].x = win.x;
+	desktop[0].y = win.y;
+	desktop[0].w = win.w;
+	desktop[0].h = win.h;
+	desktop[0].s = win.s;
+	desktop[0].controls = win.controls;
+	desktop[0].controlCount = win.controlCount;
+	desktop[0].buffer = win.buffer;
+}
+
+static void MoveToEnd()
+{
+	struct Window win;
+	win.title = desktop[0].title;
+	win.x = desktop[0].x;
+	win.y = desktop[0].y;
+	win.w = desktop[0].w;
+	win.h = desktop[0].h;
+	win.s = desktop[0].s;
+	win.controls = desktop[0].controls;
+	win.controlCount = desktop[0].controlCount;
+	win.buffer = desktop[0].buffer;
+	for(int i = 0; i < windowCount; i++)
+	{
+		desktop[i].title = desktop[i + 1].title;
+		desktop[i].x = desktop[i + 1].x;
+		desktop[i].y = desktop[i + 1].y;
+		desktop[i].w = desktop[i + 1].w;
+		desktop[i].h = desktop[i + 1].h;
+		desktop[i].s = desktop[i + 1].s;
+		desktop[i].controls = desktop[i + 1].controls;
+		desktop[i].controlCount = desktop[i + 1].controlCount;
+		desktop[i].buffer = desktop[i + 1].buffer;
+	}
+	desktop[windowCount - 1].title = win.title;
+	desktop[windowCount - 1].x = win.x;
+	desktop[windowCount - 1].y = win.y;
+	desktop[windowCount - 1].w = win.w;
+	desktop[windowCount - 1].h = win.h;
+	desktop[windowCount - 1].s = win.s;
+	desktop[windowCount - 1].controls = win.controls;
+	desktop[windowCount - 1].controlCount = win.controlCount;
+	desktop[windowCount - 1].buffer = win.buffer;
+}
+
+static void MouseClick()
+{
 	int MouseY = Mouse::GetY();
 	int MouseX = Mouse::GetX();
 	int n = (MouseX - 68) / 114;
@@ -258,85 +361,17 @@ static void MouseClick()
 		{
 			if (n && !desktop[n].s)
 			{
-				win.title = desktop[n].title;
-				win.x = desktop[n].x;
-				win.y = desktop[n].y;
-				win.w = desktop[n].w;
-				win.h = desktop[n].h;
-				win.s = desktop[n].s;
-				win.buffer = desktop[n].buffer;
-				for(int i = n; i > 0; i--)
-				{
-					desktop[i].title = desktop[i - 1].title;
-					desktop[i].x = desktop[i - 1].x;
-					desktop[i].y = desktop[i - 1].y;
-					desktop[i].w = desktop[i - 1].w;
-					desktop[i].h = desktop[i - 1].h;
-					desktop[i].s = desktop[i - 1].s;
-					desktop[i].buffer = desktop[i - 1].buffer;
-				}
-				desktop[0].title = win.title;
-				desktop[0].x = win.x;
-				desktop[0].y = win.y;
-				desktop[0].w = win.w;
-				desktop[0].h = win.h;
-				desktop[0].s = win.s;
-				desktop[0].buffer = win.buffer;
+				MoveToZero(n);
 			}
 			else if (n && desktop[n].s)
 			{
-				win.title = desktop[n].title;
-				win.x = desktop[n].x;
-				win.y = desktop[n].y;
-				win.w = desktop[n].w;
-				win.h = desktop[n].h;
-				win.s = 0;
-				win.buffer = desktop[n].buffer;
-				for(int i = n; i > 0; i--)
-				{
-					desktop[i].title = desktop[i - 1].title;
-					desktop[i].x = desktop[i - 1].x;
-					desktop[i].y = desktop[i - 1].y;
-					desktop[i].w = desktop[i - 1].w;
-					desktop[i].h = desktop[i - 1].h;
-					desktop[i].s = desktop[i - 1].s;
-					desktop[i].buffer = desktop[i - 1].buffer;
-				}
-				desktop[0].title = win.title;
-				desktop[0].x = win.x;
-				desktop[0].y = win.y;
-				desktop[0].w = win.w;
-				desktop[0].h = win.h;
-				desktop[0].s = win.s;
-				desktop[0].buffer = win.buffer;
+				MoveToZero(n);
+				desktop[0].s = 0;
 			}
 			else if (!n && !desktop[n].s)
 			{
 				desktop[0].s = 1;
-				win.title = desktop[0].title;
-				win.x = desktop[0].x;
-				win.y = desktop[0].y;
-				win.w = desktop[0].w;
-				win.h = desktop[0].h;
-				win.s = desktop[0].s;
-				win.buffer = desktop[0].buffer;
-				for(int i = 0; i < windowCount; i++)
-				{
-					desktop[i].title = desktop[i + 1].title;
-					desktop[i].x = desktop[i + 1].x;
-					desktop[i].y = desktop[i + 1].y;
-					desktop[i].w = desktop[i + 1].w;
-					desktop[i].h = desktop[i + 1].h;
-					desktop[i].s = desktop[i + 1].s;
-					desktop[i].buffer = desktop[i + 1].buffer;
-				}
-				desktop[windowCount - 1].title = win.title;
-				desktop[windowCount - 1].x = win.x;
-				desktop[windowCount - 1].y = win.y;
-				desktop[windowCount - 1].w = win.w;
-				desktop[windowCount - 1].h = win.h;
-				desktop[windowCount - 1].s = win.s;
-				desktop[windowCount - 1].buffer = win.buffer;
+				MoveToEnd();
 			}
 			else if (!n && desktop[n].s)
 			{
@@ -356,31 +391,7 @@ static void MouseClick()
 				{
 					if (MouseY < (desktop[n].y + desktop[n].h) && MouseY > desktop[n].y)
 					{
-						win.title = desktop[n].title;
-						win.x = desktop[n].x;
-						win.y = desktop[n].y;
-						win.w = desktop[n].w;
-						win.h = desktop[n].h;
-						win.s = desktop[n].s;
-						win.buffer = desktop[n].buffer;
-						for(int i = n; i > 0; i--)
-						{
-							desktop[i].title = desktop[i - 1].title;
-							desktop[i].x = desktop[i - 1].x;
-							desktop[i].y = desktop[i - 1].y;
-							desktop[i].w = desktop[i - 1].w;
-							desktop[i].h = desktop[i - 1].h;
-							desktop[i].s = desktop[i - 1].s;
-							desktop[i].buffer = desktop[i - 1].buffer;
-						}
-						desktop[0].title = win.title;
-						desktop[0].x = win.x;
-						desktop[0].y = win.y;
-						desktop[0].w = win.w;
-						desktop[0].h = win.h;
-						desktop[0].s = win.s;
-						desktop[0].buffer = win.buffer;
-
+						MoveToZero(n);
 						if (MouseX < (desktop[0].x + desktop[0].w - 4) && MouseX > (desktop[0].x + desktop[0].w - 19) && MouseY < (desktop[0].y + 20))
 						{
 							if (!desktop[0].c) DestroyWindow();
@@ -408,41 +419,17 @@ static void MouseClick()
 								desktop[0].y = desktop[0].py;
 								desktop[0].buffer = (unsigned int *)Memory::Realloc(desktop[0].buffer, desktop[0].w * desktop[0].h * 4);
 							}
-							DrawWindow(desktop[0]);
+							//DrawWindow(desktop[0]);
 							break;
 						}
 						else if (MouseX < (desktop[0].x + desktop[0].w - 38) && MouseX > (desktop[0].x + desktop[0].w - 55) && MouseY < (desktop[0].y + 20))
 						{
 							desktop[0].s = 1;
-							win.title = desktop[0].title;
-							win.x = desktop[0].x;
-							win.y = desktop[0].y;
-							win.w = desktop[0].w;
-							win.h = desktop[0].h;
-							win.s = desktop[0].s;
-							win.buffer = desktop[0].buffer;
-							for(int i = 0; i < windowCount; i++)
-							{
-								desktop[i].title = desktop[i + 1].title;
-								desktop[i].x = desktop[i + 1].x;
-								desktop[i].y = desktop[i + 1].y;
-								desktop[i].w = desktop[i + 1].w;
-								desktop[i].h = desktop[i + 1].h;
-								desktop[i].s = desktop[i + 1].s;
-								desktop[i].buffer = desktop[i + 1].buffer;
-							}
-							desktop[windowCount - 1].title = win.title;
-							desktop[windowCount - 1].x = win.x;
-							desktop[windowCount - 1].y = win.y;
-							desktop[windowCount - 1].w = win.w;
-							desktop[windowCount - 1].h = win.h;
-							desktop[windowCount - 1].s = win.s;
-							desktop[windowCount - 1].buffer = win.buffer;
+							MoveToEnd();
 							break;
 						}
 						else if (MouseY < (desktop[0].y + 22))
 						{
-							
 							desktop[0].c = 1;
 							desktop[0].cx = MouseX;
 							desktop[0].cy = MouseY;
@@ -466,7 +453,13 @@ void GUI::Update()
 		cx++;
 	}
 	for (int i = windowCount; i > 0; i--)
-		if (!desktop[i - 1].s) Graphics::DrawBuffer(framebuffer, desktop[i - 1].buffer, 800, 600, desktop[i - 1].x, desktop[i - 1].y, desktop[i - 1].w, desktop[i - 1].h);
+	{
+		if (!desktop[i - 1].s)
+		{
+			DrawWindow(desktop[i - 1]);
+			Graphics::DrawBuffer(framebuffer, desktop[i - 1].buffer, 800, 600, desktop[i - 1].x, desktop[i - 1].y, desktop[i - 1].w, desktop[i - 1].h);
+		}
+	}
 	DrawTaskbar();
 	DrawMouse();
 	Graphics::DrawFullscreenBuffer(framebuffer);
@@ -485,25 +478,59 @@ void GUI::CreateWindow(const char *title, int x, int y, int w, int h)
 		desktop[i].w = desktop[i - 1].w;
 		desktop[i].h = desktop[i - 1].h;
 		desktop[i].s = desktop[i - 1].s;
+		desktop[i].controls = desktop[i - 1].controls;
+		desktop[i].controlCount = desktop[i - 1].controlCount;
 		desktop[i].buffer = desktop[i - 1].buffer;
 	}
 	desktop[0].title = (char *)Memory::Alloc(strlen(title));
 	strcpy(desktop[0].title, title);
 	desktop[0].x = x;
 	desktop[0].y = y;
-	desktop[0].w = w;
-	desktop[0].h = h;
+	desktop[0].w = w + 4;
+	desktop[0].h = h + 24;
 	desktop[0].s = 0;
-	desktop[0].buffer = (unsigned int *)Memory::Alloc(w * h * 4);
-	DrawWindow(desktop[0]);
+	desktop[0].controls = (struct Control *)Memory::Alloc(sizeof(struct Control) * 1000);
+	desktop[0].controlCount = 0;
+	desktop[0].buffer = (unsigned int *)Memory::Alloc((w + 4) * (h + 24) * 4);
+	//DrawWindow(desktop[0]);
 	windowCount++;
+}
+
+void *GUI::AddControl(const char *title, char type)
+{
+	for(int i = 0; i < windowCount; i++)
+	{
+		if (!strcmp(title, desktop[i].title))
+		{
+			switch(type)
+			{
+			case CONTROL_BUTTON:
+				desktop[i].controls[desktop[i].controlCount].pointer = Controls::CreateButton("Button", 0, 0, 60, 20);
+				desktop[i].controls[desktop[i].controlCount].type = type;
+				desktop[i].controlCount++;
+				//DrawWindow(desktop[0]);
+				return (void *)desktop[i].controls[desktop[i].controlCount - 1].pointer;
+				break;
+			}
+		}
+	}
 }
 
 void GUI::DestroyWindow()
 {
-	Memory::Free((void *)&desktop[0].title[0]);
-	Memory::Free((void *)&desktop[0].buffer[0]);
-	for(int i = 0; i < windowCount; i++)
+	for (int i = 0; i < desktop[0].controlCount; i++)
+	{
+		switch(desktop[0].controls[i].type)
+		{
+		case CONTROL_BUTTON:
+			Controls::DestroyButton(desktop[0].controls[i].pointer);
+			break;
+		}
+	}
+	Memory::Free((void *)desktop[0].controls);
+	Memory::Free((void *)desktop[0].title);
+	Memory::Free((void *)desktop[0].buffer);
+	for (int i = 0; i < windowCount; i++)
 	{
 		desktop[i].title = desktop[i + 1].title;
 		desktop[i].x = desktop[i + 1].x;
@@ -511,6 +538,8 @@ void GUI::DestroyWindow()
 		desktop[i].w = desktop[i + 1].w;
 		desktop[i].h = desktop[i + 1].h;
 		desktop[i].s = desktop[i + 1].s;
+		desktop[i].controls = desktop[i + 1].controls;
+		desktop[i].controlCount = desktop[i + 1].controlCount;
 		desktop[i].buffer = desktop[i + 1].buffer;
 	}
 	windowCount--;

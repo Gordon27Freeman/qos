@@ -42,17 +42,10 @@ int strlen(const char *s)
 
 int strcmp(const char *s1, const char *s2)
 {
-	int l1 = strlen(s1), l2 = strlen(s2);
-	if (l1 != l2) return 1;
-	else
-	{
-		while (s1[l1] == s2[l1])
-		{
-			l1++;
-			if (l1 >= l2) break;
-		}
-		if (*s1 == *s2) return 0;
-		else return 1;
+	for(int i = 0; ; i++)
+    {
+        if(s1[i] != s2[i]) return s1[i] < s2[i] ? -1 : 1;
+        if(s1[i] == '\0') return 0;
 	}
 }
 
