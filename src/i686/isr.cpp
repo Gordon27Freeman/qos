@@ -110,7 +110,7 @@ static const char *exceptionMessages[] =
 	"Reserved"
 };
 
-static unsigned int framebuffer[800 * 600];
+extern unsigned int *framebuffer;
 
 extern "C" void FaultHandler(struct regs *r)
 {

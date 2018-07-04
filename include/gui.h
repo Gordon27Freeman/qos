@@ -3,12 +3,14 @@
 
 #define CONTROL_BUTTON 0x01
 
+typedef unsigned int window;
+
 namespace GUI
 {
 	void Update();
-	void CreateWindow(const char *title, int x, int y, int w, int h);
+	window CreateWindow(const char *title, int x, int y, int w, int h);
 	void DestroyWindow();
-	void *AddControl(const char *title, char type);
+	void *AddControl(window win, char type);
 }
 
 #endif

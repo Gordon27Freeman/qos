@@ -9,7 +9,7 @@
 using namespace Graphics;
 
 static int mask[8] = { 128, 64, 32, 16, 8, 4, 2, 1 };
-static unsigned int *framebuffer;
+unsigned int *framebuffer;
 extern struct Font VGAFont;
 
 void Graphics::Init(unsigned long long addr)

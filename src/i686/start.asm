@@ -1,4 +1,4 @@
-global start
+global start, sse_support
 extern kmain, init
 
 FLAGS equ 1 << 0 | 1 << 1 | 1 << 2
@@ -18,6 +18,11 @@ start:
 	push eax
 	push ebx
 
+	mov eax, 0x1
+	cpuid
+	test edx, 1<<25
+	jz .no_sse
+
 	mov eax, cr0
 	and ax, 0xFFFB
 	or ax, 0x2
@@ -26,13 +31,22 @@ start:
 	or ax, 3 << 9
 	mov cr4, eax
 
+	mov byte [sse_support], 0xa0
+	
+.main:
 	call init
 	call kmain
+
+.no_sse:
+	mov byte [sse_support], 0xf0
+jmp .main
 
 .l:	cli
 	hlt
 jmp .l
 
+sse_support db 0
+
 section .bss
-	resb 0x10000
+	resb 0x4000
 stack:
