@@ -5,7 +5,8 @@ struct Button
 {
 	char *label;
 	int x, y, w, h;
-	char pressed;
+	char pressed, lastPressed;
+	void (*onClick)();
 };
 
 namespace Controls
@@ -14,6 +15,7 @@ namespace Controls
 	void DestroyButton(unsigned int *button);
 	void DrawButton(unsigned int *buffer, int bw, int bh, unsigned int *button);
 	void ClickButton(unsigned int *button, int x, int y);
+	void ReleaseButton(unsigned int *button, int x, int y);
 }
 
 #endif

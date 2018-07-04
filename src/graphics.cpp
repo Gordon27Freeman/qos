@@ -73,7 +73,7 @@ void Graphics::VerticalLine(unsigned int *buffer, int bw, int bh, int x, int y, 
 void Graphics::Rect(unsigned int *buffer, int bw, int bh, int x, int y, int w, int h, unsigned int color)
 {
 	HorizontalLine(buffer, bw, bh, x, y, w, color);
-	HorizontalLine(buffer, bw, bh, x, y + h, w, color);
+	HorizontalLine(buffer, bw, bh, x, y + h, w + 1, color);
 	VerticalLine(buffer, bw, bh, x, y, h, color);
 	VerticalLine(buffer, bw, bh, x + w, y, h, color);
 }

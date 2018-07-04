@@ -45,7 +45,6 @@ void Controls::DrawButton(unsigned int *buffer, int bw, int bh, unsigned int *bu
 	Graphics::HorizontalLine(buffer, bw, bh, btn->x + 4, btn->y + btn->h + 24, btn->w + 1, rightBottom);
 	Graphics::VerticalLine(buffer, bw, bh, btn->x + btn->w + 4, btn->y + 24, btn->h, rightBottom);
 	Graphics::DrawString(buffer, bw, bh, btn->label, btn->x + 8, btn->y + 27, 0x101010);
-	btn->pressed = 0;
 }
 
 void Controls::ClickButton(unsigned int *button, int x, int y)
@@ -53,6 +52,18 @@ void Controls::ClickButton(unsigned int *button, int x, int y)
 	struct Button *btn = (struct Button *)button;
 	if (x >= btn->x && x <= btn->x + btn->w && y >= btn->y && y <= btn->y + btn->h)
 	{
+		if (btn->lastPressed == 0) btn->onClick();
 		btn->pressed = 1;
+		btn->lastPressed = 1;
+	}
+}
+
+void Controls::ReleaseButton(unsigned int *button, int x, int y)
+{
+	struct Button *btn = (struct Button *)button;
+	if (x >= btn->x && x <= btn->x + btn->w && y >= btn->y && y <= btn->y + btn->h)
+	{
+		btn->pressed = 0;
+		btn->lastPressed = 0;
 	}
 }

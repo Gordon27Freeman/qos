@@ -113,6 +113,8 @@ struct Window desktop[0xff];
 static int windowCount = 0;
 static int lastUID = 0;
 static int changeActive = 0;
+static int clickHold = 0;
+static int listShown = 0;
 static unsigned int framebuffer[800 * 600];
 
 static void DrawIcon(unsigned int *buffer, int bw, int bh, unsigned int *icon, int x, int y)
@@ -174,7 +176,34 @@ static void DrawWindow(struct Window window)
 
 	Graphics::DrawString(window.buffer, window.w, window.h, window.title, 24, 4, 0xe0e0e0);
 	DrawIcon(window.buffer, window.w, window.h, WindowIcon, 4, 3);
-	//DrawControls(window);
+}
+
+static void DrawList()
+{
+	for(int i = 5; i < windowCount; i++)
+	{
+		int rightBottom = 0x907060;
+		int leftTop = 0xf0c0b0;
+		int color = 0xb0a090;
+
+		char title[128];
+		if (strlen(desktop[i].title) > 12)
+		{
+			memcpy(title, desktop[i].title, 13);
+			title[9] = '.';
+			title[10] = '.';
+			title[11] = '.';
+			title[12] = 0;
+		}
+		else strcpy(title, desktop[i].title);
+		Graphics::FillRect(framebuffer, 800, 600, 653, 555 - (i - 5) * 19, 126, 19, color);
+		Graphics::HorizontalLine(framebuffer, 800, 600, 653, 555 - (i - 5) * 19, 126, leftTop);
+		Graphics::VerticalLine(framebuffer, 800, 600, 653, 555 - (i - 5) * 19, 19, leftTop);
+		Graphics::HorizontalLine(framebuffer, 800, 600, 653, 574 - (i - 5) * 19, 127, rightBottom);
+		Graphics::VerticalLine(framebuffer, 800, 600, 779, 555 - (i - 5) * 19, 19, rightBottom);
+		Graphics::DrawString(framebuffer, 800, 600, title, 675, 558 - (i - 5) * 19, 0x101010);
+		DrawIcon(framebuffer, 800, 600, WindowIcon, 656, 557 - (i - 5) * 19);
+	}
 }
 
 static void DrawTaskbar()
@@ -213,6 +242,18 @@ static void DrawTaskbar()
 	Graphics::HorizontalLine(framebuffer, 800, 600, 751, 597, 47, 0xf0c0b0);
 	Graphics::VerticalLine(framebuffer, 800, 600, 797, 578, 19, 0xf0c0b0);
 
+	if (windowCount > 5)
+	{
+		Graphics::HorizontalLine(framebuffer, 800, 600, 716, 578, 10, 0xf0c0b0);
+		Graphics::VerticalLine(framebuffer, 800, 600, 716, 578, 19, 0xf0c0b0);
+		Graphics::HorizontalLine(framebuffer, 800, 600, 716, 597, 11, 0x907060);
+		Graphics::VerticalLine(framebuffer, 800, 600, 726, 578, 19, 0x907060);
+		Graphics::HorizontalLine(framebuffer, 800, 600, 721, 586, 1, 0x101010);
+		Graphics::HorizontalLine(framebuffer, 800, 600, 720, 587, 3, 0x101010);
+		Graphics::HorizontalLine(framebuffer, 800, 600, 719, 588, 5, 0x101010);
+		Graphics::HorizontalLine(framebuffer, 800, 600, 718, 589, 7, 0x101010);
+	}
+
 	int rightBottom, leftTop, color;
 	for(int i = 0; i < windowCount; i++)
 	{
@@ -247,6 +288,8 @@ static void DrawTaskbar()
 		Graphics::DrawString(framebuffer, 800, 600, title, 90 + 130 * i, 581, 0x101010);
 		DrawIcon(framebuffer, 800, 600, WindowIcon, 71 + 130 * i, 580);
 	}
+
+	if (listShown) DrawList();
 }
 
 static void DrawMouse()
@@ -354,7 +397,20 @@ static void MouseClick()
 {
 	int MouseY = Mouse::GetY();
 	int MouseX = Mouse::GetX();
-	int n = (MouseX - 68) / 114;
+	int n = (MouseX - 68) / 129;
+	int winMax;
+	if (windowCount < 6) winMax = windowCount;
+	else winMax = 5;
+
+	if (listShown && !changeActive)
+	{
+		if (MouseX > 653 && MouseX < 780 && MouseY > (575 - (windowCount - 5) * 19) && MouseY < 575)
+		{
+			n = (577 - MouseY) / 19 + 5;
+			MoveToZero(n);
+			changeActive = 1;
+		}
+	}
 
 	if (desktop[0].c == 1)
 	{
@@ -365,7 +421,7 @@ static void MouseClick()
 	}
 	else if (MouseY > 580 && !changeActive)
 	{
-		if (MouseX > 68 && MouseX < 638 && n < windowCount)
+		if (MouseX > 68 && n < winMax)
 		{
 			if (n && !desktop[n].s)
 			{
@@ -387,6 +443,15 @@ static void MouseClick()
 			}
 			changeActive = 1;
 		}
+		else if (MouseX > 716 && MouseX < 726)
+		{
+			if (!changeActive)
+			{
+				if (!listShown) listShown = 1;
+				else listShown = 0;
+			}
+			changeActive = 1;
+		}
 	}
 	else
 	{
@@ -402,7 +467,11 @@ static void MouseClick()
 						MoveToZero(n);
 						if (MouseX < (desktop[0].x + desktop[0].w - 4) && MouseX > (desktop[0].x + desktop[0].w - 19) && MouseY < (desktop[0].y + 20))
 						{
-							if (!desktop[0].c) DestroyWindow();
+							if (!desktop[0].c)
+							{
+								DestroyWindow();
+								clickHold = 1;
+							}
 							break;
 						}
 						else if (MouseX < (desktop[0].x + desktop[0].w - 21) && MouseX > (desktop[0].x + desktop[0].w - 37) && MouseY < (desktop[0].y + 20))
@@ -428,12 +497,14 @@ static void MouseClick()
 								desktop[0].buffer = (unsigned int *)Memory::Realloc(desktop[0].buffer, desktop[0].w * desktop[0].h * 4);
 							}
 							DrawWindow(desktop[0]);
+							clickHold = 1;
 							break;
 						}
 						else if (MouseX < (desktop[0].x + desktop[0].w - 38) && MouseX > (desktop[0].x + desktop[0].w - 55) && MouseY < (desktop[0].y + 20))
 						{
 							desktop[0].s = 1;
 							MoveToEnd();
+							clickHold = 1;
 							break;
 						}
 						else if (MouseY < (desktop[0].y + 22))
@@ -474,7 +545,6 @@ void GUI::Update()
 	{
 		if (!desktop[i - 1].s)
 		{
-			//DrawWindow(desktop[i - 1]);
 			DrawControls(desktop[i - 1]);
 			Graphics::DrawBuffer(framebuffer, desktop[i - 1].buffer, 800, 600, desktop[i - 1].x, desktop[i - 1].y, desktop[i - 1].w, desktop[i - 1].h);
 		}
@@ -482,8 +552,26 @@ void GUI::Update()
 	DrawTaskbar();
 	DrawMouse();
 	Graphics::DrawFullscreenBuffer(framebuffer);
-	if(Mouse::GetLeft()) MouseClick();
-	else desktop[0].c = 0;
+	if(Mouse::GetLeft())
+	{
+		if (!clickHold) MouseClick();
+	}
+	else
+	{
+		clickHold = 0;
+		int MouseY = Mouse::GetY();
+		int MouseX = Mouse::GetX();
+		desktop[0].c = 0;
+		for (int i = 0; i < desktop[0].controlCount; i++)
+		{
+			switch(desktop[0].controls[i].type)
+			{
+			case CONTROL_BUTTON:
+				Controls::ReleaseButton(desktop[0].controls[i].pointer, MouseX - desktop[0].x - 4, MouseY - desktop[0].y - 24);
+				break;
+			}
+		}
+	}
 	if(!Mouse::GetLeft() && changeActive) changeActive = 0;
 }
 
