@@ -2,8 +2,6 @@
 #include <i686/regs.h>
 #include <i686/irq.h>
 #include <i686/pio.h>
-
-#include <gui.h>
 using namespace Timer;
 
 static unsigned long long current_ticks;
@@ -30,6 +28,6 @@ void Timer::Wait(int ticks)
 void Timer::Init()
 {
 	IRQ::InstallHandler(0, Handler);
-	SetPhase(1000);
+	SetPhase(100);
 	asm volatile("sti");
 }

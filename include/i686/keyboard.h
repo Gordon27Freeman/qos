@@ -3,6 +3,7 @@
 
 namespace Keyboard
 {
+	char GetChar();
 	void Init();
 }
 

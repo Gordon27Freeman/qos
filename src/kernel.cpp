@@ -1,34 +1,36 @@
 #include <gui.h>
-#include <timer.h>
-#include <graphics.h>
 #include <controls.h>
-#include <string.h>
-#include <mm.h>
 
-int x = 100, y = 100, count = 0;
+int wx = 200, wy = 200;
 
 void CreateWindowFunc()
 {
-	char *s = (char *)Memory::Alloc(20);
-	char buf[8];
-	strcpy(s, "New Window ");
-	itoa(buf, 10, count);
-	strcpy(s + 11, buf);
-	GUI::CreateWindow(s, x, y, 240, 160);
-	if (x < 300) x += 50;
-	else x = 100;
-	if (y < 300) y += 50;
-	else y = 100;
-	count++;
+	window newwin = GUI::CreateWindow("New Window", wx, wy, 200, 100);
+	if (!newwin) return;
+	struct Label *lbl = (struct Label *)GUI::AddControl(newwin, CONTROL_LABEL);
+	lbl->text = "Hello, World!";
+	lbl->active = 1;
+	lbl->visible = 1;
+	wx += 5;
+	wy += 5;
+	if(wx > 400) wx = 0;
+	if(wy > 400) wy = 0;
 }
 
 extern "C" void kmain()
 {
 	window win1 = GUI::CreateWindow("QuantumOS", 80, 60, 200, 100);
 
+	struct TextBox *txt = (struct TextBox *)GUI::AddControl(win1, CONTROL_TEXTBOX);
+	txt->active = 0;
+	txt->visible = 1;
+
 	struct Button *btn = (struct Button *)GUI::AddControl(win1, CONTROL_BUTTON);
-	btn->label = "Create Window";
-	btn->w = 110;
+	btn->label = "QOS Button";
+	btn->w = 88;
+	btn->y = 24;
+	btn->visible = 1;
+	btn->active = 1;
 	btn->onClick = CreateWindowFunc;
 
 	while (1) GUI::Update();

@@ -10,7 +10,7 @@ extern unsigned int kernel_end, kernel_start;
 struct Allocation
 {
 	unsigned char type;
-	unsigned int size;
+	long long size;
 	unsigned int *addr;
 	unsigned int next;
 	unsigned int prev;

@@ -37,6 +37,8 @@ start:
 	call init
 	call kmain
 
+	jmp .l
+
 .no_sse:
 	mov byte [sse_support], 0xf0
 jmp .main

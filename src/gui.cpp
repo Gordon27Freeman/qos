@@ -111,7 +111,7 @@ struct Window
 
 struct Window desktop[0xff];
 static int windowCount = 0;
-static int lastUID = 0;
+static int lastUID = 1;
 static int changeActive = 0;
 static int clickHold = 0;
 static int listShown = 0;
@@ -131,8 +131,14 @@ static void DrawControls(struct Window window)
 	{
 		switch(window.controls[i].type)
 		{
+		case CONTROL_LABEL:
+			Controls::DrawLabel(window.buffer, window.w, window.h, window.controls[i].pointer);
+			break;
 		case CONTROL_BUTTON:
 			Controls::DrawButton(window.buffer, window.w, window.h, window.controls[i].pointer);
+			break;
+		case CONTROL_TEXTBOX:
+			Controls::DrawTextBox(window.buffer, window.w, window.h, window.controls[i].pointer);
 			break;
 		}
 	}
@@ -174,7 +180,17 @@ static void DrawWindow(struct Window window)
 	Graphics::Line(window.buffer, window.w, window.h, window.w - 15, 8, window.w - 9, 14, 0x000000);
 	Graphics::Line(window.buffer, window.w, window.h, window.w - 9, 8, window.w - 15, 14, 0x000000);
 
-	Graphics::DrawString(window.buffer, window.w, window.h, window.title, 24, 4, 0xe0e0e0);
+	char title[1024];
+	if (strlen(window.title) > ((window.w - 75) / 8))
+	{
+		memcpy(title, window.title, ((window.w - 75) / 8));
+		title[((window.w - 75) / 8) - 4] = '.';
+		title[((window.w - 75) / 8) - 3] = '.';
+		title[((window.w - 75) / 8) - 2] = '.';
+		title[((window.w - 75) / 8) - 1] = 0;
+	}
+	else strcpy(title, window.title);
+	Graphics::DrawString(window.buffer, window.w, window.h, title, 24, 4, 0xe0e0e0);
 	DrawIcon(window.buffer, window.w, window.h, WindowIcon, 4, 3);
 }
 
@@ -186,7 +202,7 @@ static void DrawList()
 		int leftTop = 0xf0c0b0;
 		int color = 0xb0a090;
 
-		char title[128];
+		char title[1024];
 		if (strlen(desktop[i].title) > 12)
 		{
 			memcpy(title, desktop[i].title, 13);
@@ -408,6 +424,7 @@ static void MouseClick()
 		{
 			n = (577 - MouseY) / 19 + 5;
 			MoveToZero(n);
+			if (desktop[0].s) desktop[0].s = 0;
 			changeActive = 1;
 		}
 	}
@@ -486,7 +503,6 @@ static void MouseClick()
 								desktop[0].h = 575;
 								desktop[0].x = 0;
 								desktop[0].y = 0;
-								desktop[0].buffer = (unsigned int *)Memory::Realloc(desktop[0].buffer, 800 * 575 * 4);
 							}
 							else
 							{
@@ -494,7 +510,6 @@ static void MouseClick()
 								desktop[0].h = desktop[0].ph;
 								desktop[0].x = desktop[0].px;
 								desktop[0].y = desktop[0].py;
-								desktop[0].buffer = (unsigned int *)Memory::Realloc(desktop[0].buffer, desktop[0].w * desktop[0].h * 4);
 							}
 							DrawWindow(desktop[0]);
 							clickHold = 1;
@@ -577,6 +592,8 @@ void GUI::Update()
 
 unsigned int GUI::CreateWindow(const char *title, int x, int y, int w, int h)
 {
+	unsigned int *buffer = (unsigned int *)Memory::Alloc(800 * 600 * 4 + 1024);
+	if (!(int)buffer) return 0;
 	for(int i = windowCount; i > 0; i--)
 	{
 		desktop[i].title = desktop[i - 1].title;
@@ -590,16 +607,16 @@ unsigned int GUI::CreateWindow(const char *title, int x, int y, int w, int h)
 		desktop[i].controlCount = desktop[i - 1].controlCount;
 		desktop[i].buffer = desktop[i - 1].buffer;
 	}
-	desktop[0].title = (char *)Memory::Alloc(strlen(title));
+	desktop[0].title = (char *)buffer;
 	strcpy(desktop[0].title, title);
 	desktop[0].x = x;
 	desktop[0].y = y;
 	desktop[0].w = w + 4;
 	desktop[0].h = h + 24;
 	desktop[0].s = 0;
-	desktop[0].controls = (struct Control *)Memory::Alloc(sizeof(struct Control) * 1000);
+	desktop[0].controls = (struct Control *)Memory::Alloc(65536);
 	desktop[0].controlCount = 0;
-	desktop[0].buffer = (unsigned int *)Memory::Alloc((w + 4) * (h + 24) * 4);
+	desktop[0].buffer = buffer + 1024;
 	desktop[0].uid = lastUID;
 	lastUID++;
 	DrawWindow(desktop[0]);
@@ -615,14 +632,20 @@ void *GUI::AddControl(unsigned int win, char type)
 		{
 			switch(type)
 			{
+			case CONTROL_LABEL:
+				desktop[i].controls[desktop[i].controlCount].pointer = Controls::CreateLabel("Label", 0, 0);
+				break;
 			case CONTROL_BUTTON:
 				desktop[i].controls[desktop[i].controlCount].pointer = Controls::CreateButton("Button", 0, 0, 60, 20);
-				desktop[i].controls[desktop[i].controlCount].type = type;
-				desktop[i].controlCount++;
-				DrawWindow(desktop[0]);
-				return (void *)desktop[i].controls[desktop[i].controlCount - 1].pointer;
+				break;
+			case CONTROL_TEXTBOX:
+				desktop[i].controls[desktop[i].controlCount].pointer = Controls::CreateTextBox("TextBox", 0, 0, 64, 20);
 				break;
 			}
+			desktop[i].controls[desktop[i].controlCount].type = type;
+			desktop[i].controlCount++;
+			DrawWindow(desktop[0]);
+			return (void *)desktop[i].controls[desktop[i].controlCount - 1].pointer;
 		}
 	}
 }
@@ -633,14 +656,19 @@ void GUI::DestroyWindow()
 	{
 		switch(desktop[0].controls[i].type)
 		{
+		case CONTROL_LABEL:
+			Controls::DestroyLabel(desktop[0].controls[i].pointer);
+			break;
 		case CONTROL_BUTTON:
 			Controls::DestroyButton(desktop[0].controls[i].pointer);
+			break;
+		case CONTROL_TEXTBOX:
+			Controls::DestroyTextBox(desktop[0].controls[i].pointer);
 			break;
 		}
 	}
 	Memory::Free((void *)desktop[0].controls);
 	Memory::Free((void *)desktop[0].title);
-	Memory::Free((void *)desktop[0].buffer);
 	for (int i = 0; i < windowCount; i++)
 	{
 		desktop[i].title = desktop[i + 1].title;
