@@ -5,6 +5,7 @@
 #include <mm.h>
 
 #ifdef ARCH_i686
+#include <i686/keyboard.h>
 #include <i686/memory.h>
 #include <i686/mouse.h>
 #include <i686/time.h>
@@ -98,7 +99,7 @@ struct Control
 
 struct Window
 {
-	char *title;
+	const char *title;
 	unsigned int *buffer;
 	int x, y, w, h;
 	int px, py, pw, ph;
@@ -109,7 +110,7 @@ struct Window
 	unsigned int uid;
 };
 
-struct Window desktop[0xff];
+struct Window desktop[0x34];
 static int windowCount = 0;
 static int lastUID = 1;
 static int changeActive = 0;
@@ -132,86 +133,97 @@ static void DrawControls(struct Window window)
 		switch(window.controls[i].type)
 		{
 		case CONTROL_LABEL:
-			Controls::DrawLabel(window.buffer, window.w, window.h, window.controls[i].pointer);
+			Controls::DrawLabel(framebuffer, 800, 600, window.controls[i].pointer, window.x, window.y);
 			break;
 		case CONTROL_BUTTON:
-			Controls::DrawButton(window.buffer, window.w, window.h, window.controls[i].pointer);
+			Controls::DrawButton(framebuffer, 800, 600, window.controls[i].pointer, window.x, window.y);
 			break;
 		case CONTROL_TEXTBOX:
-			Controls::DrawTextBox(window.buffer, window.w, window.h, window.controls[i].pointer);
+			Controls::DrawTextBox(framebuffer, 800, 600, window.controls[i].pointer, window.x, window.y);
 			break;
 		}
 	}
 }
 
-static void DrawWindow(struct Window window)
+char title[128];
+
+static void DrawWindow(struct Window window, char n)
 {
-	Graphics::FillRect(window.buffer, window.w, window.h, 0, 0, window.w - 1, window.h - 1, 0xb0a090);
-	Graphics::HorizontalGradient(window.buffer, window.w, window.h, 2, 2, window.w - 4, 19, 0x201080, 0x10c0c0);
+	int startColor = 0x404040, endColor = 0xa0a0a0;
+	if (!n)
+	{
+		startColor = 0x201080;
+		endColor = 0x10c0c0;
+	}
 
-	Graphics::HorizontalLine(window.buffer, window.w, window.h, 0, window.h - 1, window.w, 0x907060);
-	Graphics::VerticalLine(window.buffer, window.w, window.h, window.w - 1, 0, window.h, 0x907060);
-	Graphics::HorizontalLine(window.buffer, window.w, window.h, 0, 0, window.w, 0xf0c0b0);
-	Graphics::VerticalLine(window.buffer, window.w, window.h, 0, 0, window.h, 0xf0c0b0);
+	Graphics::FillRect(framebuffer, 800, 600, window.x + 0, window.y + 0, window.w - 1, window.h - 1, 0xb0a090);
+	Graphics::HorizontalGradient(framebuffer, 800, 600, window.x + 2, window.y + 2, window.w - 4, 19, startColor, endColor);
 
-	Graphics::FillRect(window.buffer, window.w, window.h, window.w - 55, 4, 15, 15, 0xb0a090);
-	Graphics::HorizontalLine(window.buffer, window.w, window.h, window.w - 55, 18, 15, 0x907060);
-	Graphics::VerticalLine(window.buffer, window.w, window.h, window.w - 41, 4, 15, 0x907060);
-	Graphics::HorizontalLine(window.buffer, window.w, window.h, window.w - 55, 4, 15, 0xf0c0b0);
-	Graphics::VerticalLine(window.buffer, window.w, window.h, window.w - 55, 4, 15, 0xf0c0b0);
-	Graphics::HorizontalLine(window.buffer, window.w, window.h, window.w - 51, 14, 8, 0xf0c0b0);
-	Graphics::HorizontalLine(window.buffer, window.w, window.h, window.w - 52, 15, 8, 0x404040);
+	Graphics::HorizontalLine(framebuffer, 800, 600, window.x + 0, window.y + window.h - 1, window.w, 0x907060);
+	Graphics::VerticalLine(framebuffer, 800, 600, window.x + window.w - 1, window.y + 0, window.h, 0x907060);
+	Graphics::HorizontalLine(framebuffer, 800, 600, window.x + 0, window.y + 0, window.w, 0xf0c0b0);
+	Graphics::VerticalLine(framebuffer, 800, 600, window.x + 0, window.y + 0, window.h, 0xf0c0b0);
 
-	Graphics::FillRect(window.buffer, window.w, window.h, window.w - 37, 4, 15, 15, 0xb0a090);
-	Graphics::HorizontalLine(window.buffer, window.w, window.h, window.w - 37, 18, 15, 0x907060);
-	Graphics::VerticalLine(window.buffer, window.w, window.h, window.w - 23, 4, 15, 0x907060);
-	Graphics::HorizontalLine(window.buffer, window.w, window.h, window.w - 37, 4, 15, 0xf0c0b0);
-	Graphics::VerticalLine(window.buffer, window.w, window.h, window.w - 37, 4, 15, 0xf0c0b0);
-	Graphics::Rect(window.buffer, window.w, window.h, window.w - 33, 6, 8, 8, 0xf0c0b0);
-	Graphics::Rect(window.buffer, window.w, window.h, window.w - 34, 7, 8, 8, 0x404040);
+	Graphics::FillRect(framebuffer, 800, 600, window.x + window.w - 55, window.y + 4, 15, 15, 0xb0a090);
+	Graphics::HorizontalLine(framebuffer, 800, 600, window.x + window.w - 55, window.y + 18, 15, 0x907060);
+	Graphics::VerticalLine(framebuffer, 800, 600, window.x + window.w - 41, window.y + 4, 15, 0x907060);
+	Graphics::HorizontalLine(framebuffer, 800, 600, window.x + window.w - 55, window.y + 4, 15, 0xf0c0b0);
+	Graphics::VerticalLine(framebuffer, 800, 600, window.x + window.w - 55, window.y + 4, 15, 0xf0c0b0);
+	Graphics::HorizontalLine(framebuffer, 800, 600, window.x + window.w - 51, window.y + 14, 8, 0xf0c0b0);
+	Graphics::HorizontalLine(framebuffer, 800, 600, window.x + window.w - 52, window.y + 15, 8, 0x404040);
 
-	Graphics::FillRect(window.buffer, window.w, window.h, window.w - 19, 4, 15, 15, 0xb0a090);
-	Graphics::HorizontalLine(window.buffer, window.w, window.h, window.w - 19, 18, 15, 0x907060);
-	Graphics::VerticalLine(window.buffer, window.w, window.h, window.w - 5, 4, 15, 0x907060);
-	Graphics::HorizontalLine(window.buffer, window.w, window.h, window.w - 19, 4, 15, 0xf0c0b0);
-	Graphics::VerticalLine(window.buffer, window.w, window.h, window.w - 19, 4, 15, 0xf0c0b0);
-	Graphics::Line(window.buffer, window.w, window.h, window.w - 14, 8, window.w - 8, 14, 0xf0c0b0);
-	Graphics::Line(window.buffer, window.w, window.h, window.w - 8, 8, window.w - 14, 14, 0xf0c0b0);
-	Graphics::Line(window.buffer, window.w, window.h, window.w - 15, 8, window.w - 9, 14, 0x000000);
-	Graphics::Line(window.buffer, window.w, window.h, window.w - 9, 8, window.w - 15, 14, 0x000000);
+	Graphics::FillRect(framebuffer, 800, 600, window.x + window.w - 37, window.y + 4, 15, 15, 0xb0a090);
+	Graphics::HorizontalLine(framebuffer, 800, 600, window.x + window.w - 37, window.y + 18, 15, 0x907060);
+	Graphics::VerticalLine(framebuffer, 800, 600, window.x + window.w - 23, window.y + 4, 15, 0x907060);
+	Graphics::HorizontalLine(framebuffer, 800, 600, window.x + window.w - 37, window.y + 4, 15, 0xf0c0b0);
+	Graphics::VerticalLine(framebuffer, 800, 600, window.x + window.w - 37, window.y + 4, 15, 0xf0c0b0);
+	Graphics::Rect(framebuffer, 800, 600, window.x + window.w - 33, window.y + 6, 8, 8, 0xf0c0b0);
+	Graphics::Rect(framebuffer, 800, 600, window.x + window.w - 34, window.y + 7, 8, 8, 0x404040);
 
-	char title[1024];
+	Graphics::FillRect(framebuffer, 800, 600, window.x + window.w - 19, window.y + 4, 15, 15, 0xb0a090);
+	Graphics::HorizontalLine(framebuffer, 800, 600, window.x + window.w - 19, window.y + 18, 15, 0x907060);
+	Graphics::VerticalLine(framebuffer, 800, 600, window.x + window.w - 5, window.y + 4, 15, 0x907060);
+	Graphics::HorizontalLine(framebuffer, 800, 600, window.x + window.w - 19, window.y + 4, 15, 0xf0c0b0);
+	Graphics::VerticalLine(framebuffer, 800, 600, window.x + window.w - 19, window.y + 4, 15, 0xf0c0b0);
+
+	Graphics::Line(framebuffer, 800, 600, window.x + window.w - 14, window.y + 8, window.x + window.w - 8, window.y + 14, 0xf0c0b0);
+	Graphics::Line(framebuffer, 800, 600, window.x + window.w - 8, window.y + 8, window.x + window.w - 14, window.y + 14, 0xf0c0b0);
+	Graphics::Line(framebuffer, 800, 600, window.x + window.w - 15, window.y + 8, window.x + window.w - 9, window.y + 14, 0x000000);
+	Graphics::Line(framebuffer, 800, 600, window.x + window.w - 9, window.y + 8, window.x + window.w - 15, window.y + 14, 0x000000);
+
+	strcpy(title, window.title);
 	if (strlen(window.title) > ((window.w - 75) / 8))
 	{
-		memcpy(title, window.title, ((window.w - 75) / 8));
 		title[((window.w - 75) / 8) - 4] = '.';
 		title[((window.w - 75) / 8) - 3] = '.';
 		title[((window.w - 75) / 8) - 2] = '.';
 		title[((window.w - 75) / 8) - 1] = 0;
 	}
-	else strcpy(title, window.title);
-	Graphics::DrawString(window.buffer, window.w, window.h, title, 24, 4, 0xe0e0e0);
-	DrawIcon(window.buffer, window.w, window.h, WindowIcon, 4, 3);
+
+	Graphics::DrawString(framebuffer, 800, 600, title, window.x + 24, window.y + 4, 0xe0e0e0);
+	DrawIcon(framebuffer, 800, 600, WindowIcon, window.x + 4, window.y + 3);
+	DrawControls(window);
 }
 
 static void DrawList()
 {
 	for(int i = 5; i < windowCount; i++)
 	{
+		if (i > 34) break;
 		int rightBottom = 0x907060;
 		int leftTop = 0xf0c0b0;
 		int color = 0xb0a090;
 
-		char title[1024];
+		strcpy(title, desktop[i].title);
 		if (strlen(desktop[i].title) > 12)
 		{
-			memcpy(title, desktop[i].title, 13);
+			
 			title[9] = '.';
 			title[10] = '.';
 			title[11] = '.';
 			title[12] = 0;
 		}
-		else strcpy(title, desktop[i].title);
+
 		Graphics::FillRect(framebuffer, 800, 600, 653, 555 - (i - 5) * 19, 126, 19, color);
 		Graphics::HorizontalLine(framebuffer, 800, 600, 653, 555 - (i - 5) * 19, 126, leftTop);
 		Graphics::VerticalLine(framebuffer, 800, 600, 653, 555 - (i - 5) * 19, 19, leftTop);
@@ -286,16 +298,17 @@ static void DrawTaskbar()
 			leftTop = 0xf0c0b0;
 			color = 0xb0a090;
 		}
-		char title[128];
+
+		strcpy(title, desktop[i].title);
 		if (strlen(desktop[i].title) > 12)
 		{
-			memcpy(title, desktop[i].title, 13);
+			
 			title[9] = '.';
 			title[10] = '.';
 			title[11] = '.';
 			title[12] = 0;
 		}
-		else strcpy(title, desktop[i].title);
+
 		Graphics::FillRect(framebuffer, 800, 600, 68 + 130 * i, 578, 126, 19, color);
 		Graphics::HorizontalLine(framebuffer, 800, 600, 68 + 130 * i, 578, 126, leftTop);
 		Graphics::VerticalLine(framebuffer, 800, 600, 68 + 130 * i, 578, 19, leftTop);
@@ -345,7 +358,6 @@ static void MoveToZero(int n)
 	win.uid = desktop[n].uid;
 	win.controls = desktop[n].controls;
 	win.controlCount = desktop[n].controlCount;
-	win.buffer = desktop[n].buffer;
 	for(int i = n; i > 0; i--)
 	{
 		desktop[i].title = desktop[i - 1].title;
@@ -357,7 +369,6 @@ static void MoveToZero(int n)
 		desktop[i].uid = desktop[i - 1].uid;
 		desktop[i].controls = desktop[i - 1].controls;
 		desktop[i].controlCount = desktop[i - 1].controlCount;
-		desktop[i].buffer = desktop[i - 1].buffer;
 	}
 	desktop[0].title = win.title;
 	desktop[0].x = win.x;
@@ -368,7 +379,6 @@ static void MoveToZero(int n)
 	desktop[0].uid = win.uid;
 	desktop[0].controls = win.controls;
 	desktop[0].controlCount = win.controlCount;
-	desktop[0].buffer = win.buffer;
 }
 
 static void MoveToEnd()
@@ -383,7 +393,6 @@ static void MoveToEnd()
 	win.uid = desktop[0].uid;
 	win.controls = desktop[0].controls;
 	win.controlCount = desktop[0].controlCount;
-	win.buffer = desktop[0].buffer;
 	for(int i = 0; i < windowCount; i++)
 	{
 		desktop[i].title = desktop[i + 1].title;
@@ -395,7 +404,6 @@ static void MoveToEnd()
 		desktop[i].uid = desktop[i + 1].uid;
 		desktop[i].controls = desktop[i + 1].controls;
 		desktop[i].controlCount = desktop[i + 1].controlCount;
-		desktop[i].buffer = desktop[i + 1].buffer;
 	}
 	desktop[windowCount - 1].title = win.title;
 	desktop[windowCount - 1].x = win.x;
@@ -406,7 +414,6 @@ static void MoveToEnd()
 	desktop[windowCount - 1].uid = win.uid;
 	desktop[windowCount - 1].controls = win.controls;
 	desktop[windowCount - 1].controlCount = win.controlCount;
-	desktop[windowCount - 1].buffer = win.buffer;
 }
 
 static void MouseClick()
@@ -473,7 +480,7 @@ static void MouseClick()
 	else
 	{
 		n = 0;
-		while (n < 0xff)
+		while (n < 0x34)
 		{
 			if (!desktop[n].s)
 			{
@@ -511,7 +518,6 @@ static void MouseClick()
 								desktop[0].x = desktop[0].px;
 								desktop[0].y = desktop[0].py;
 							}
-							DrawWindow(desktop[0]);
 							clickHold = 1;
 							break;
 						}
@@ -537,6 +543,9 @@ static void MouseClick()
 							case CONTROL_BUTTON:
 								Controls::ClickButton(desktop[0].controls[i].pointer, MouseX - desktop[0].x - 4, MouseY - desktop[0].y - 24);
 								break;
+							case CONTROL_TEXTBOX:
+								Controls::ClickTextBox(desktop[0].controls[i].pointer, MouseX - desktop[0].x - 4, MouseY - desktop[0].y - 24);
+								break;
 							}
 						}
 						break;
@@ -556,17 +565,28 @@ void GUI::Update()
 		framebuffer[cx] = 0x108080;
 		cx++;
 	}
+
 	for (int i = windowCount; i > 0; i--)
-	{
-		if (!desktop[i - 1].s)
-		{
-			DrawControls(desktop[i - 1]);
-			Graphics::DrawBuffer(framebuffer, desktop[i - 1].buffer, 800, 600, desktop[i - 1].x, desktop[i - 1].y, desktop[i - 1].w, desktop[i - 1].h);
-		}
-	}
+		if (!desktop[i - 1].s) DrawWindow(desktop[i - 1], i - 1);
+
 	DrawTaskbar();
 	DrawMouse();
 	Graphics::DrawFullscreenBuffer(framebuffer);
+
+	char c = Keyboard::GetChar();
+	if(c)
+	{
+		for (int i = 0; i < desktop[0].controlCount; i++)
+		{
+			switch(desktop[0].controls[i].type)
+			{
+			case CONTROL_TEXTBOX:
+				Controls::KeyPressTextBox(desktop[0].controls[i].pointer, c);
+				break;
+			}
+		}
+	}
+
 	if(Mouse::GetLeft())
 	{
 		if (!clickHold) MouseClick();
@@ -592,8 +612,7 @@ void GUI::Update()
 
 unsigned int GUI::CreateWindow(const char *title, int x, int y, int w, int h)
 {
-	unsigned int *buffer = (unsigned int *)Memory::Alloc(800 * 600 * 4 + 1024);
-	if (!(int)buffer) return 0;
+	if (windowCount > 34) return 0;
 	for(int i = windowCount; i > 0; i--)
 	{
 		desktop[i].title = desktop[i - 1].title;
@@ -605,21 +624,17 @@ unsigned int GUI::CreateWindow(const char *title, int x, int y, int w, int h)
 		desktop[i].uid = desktop[i - 1].uid;
 		desktop[i].controls = desktop[i - 1].controls;
 		desktop[i].controlCount = desktop[i - 1].controlCount;
-		desktop[i].buffer = desktop[i - 1].buffer;
 	}
-	desktop[0].title = (char *)buffer;
-	strcpy(desktop[0].title, title);
+	desktop[0].title = title;
 	desktop[0].x = x;
 	desktop[0].y = y;
 	desktop[0].w = w + 4;
 	desktop[0].h = h + 24;
 	desktop[0].s = 0;
-	desktop[0].controls = (struct Control *)Memory::Alloc(65536);
+	desktop[0].controls = (struct Control *)Memory::Alloc(sizeof(struct Control) * 1024);
 	desktop[0].controlCount = 0;
-	desktop[0].buffer = buffer + 1024;
 	desktop[0].uid = lastUID;
 	lastUID++;
-	DrawWindow(desktop[0]);
 	windowCount++;
 	return desktop[0].uid;
 }
@@ -636,7 +651,7 @@ void *GUI::AddControl(unsigned int win, char type)
 				desktop[i].controls[desktop[i].controlCount].pointer = Controls::CreateLabel("Label", 0, 0);
 				break;
 			case CONTROL_BUTTON:
-				desktop[i].controls[desktop[i].controlCount].pointer = Controls::CreateButton("Button", 0, 0, 60, 20);
+				desktop[i].controls[desktop[i].controlCount].pointer = Controls::CreateButton("Button", 0, 0, 64, 20);
 				break;
 			case CONTROL_TEXTBOX:
 				desktop[i].controls[desktop[i].controlCount].pointer = Controls::CreateTextBox("TextBox", 0, 0, 64, 20);
@@ -644,7 +659,6 @@ void *GUI::AddControl(unsigned int win, char type)
 			}
 			desktop[i].controls[desktop[i].controlCount].type = type;
 			desktop[i].controlCount++;
-			DrawWindow(desktop[0]);
 			return (void *)desktop[i].controls[desktop[i].controlCount - 1].pointer;
 		}
 	}
@@ -680,7 +694,6 @@ void GUI::DestroyWindow()
 		desktop[i].uid = desktop[i + 1].uid;
 		desktop[i].controls = desktop[i + 1].controls;
 		desktop[i].controlCount = desktop[i + 1].controlCount;
-		desktop[i].buffer = desktop[i + 1].buffer;
 	}
 	windowCount--;
 }

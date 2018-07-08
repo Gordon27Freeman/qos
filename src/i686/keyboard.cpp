@@ -44,8 +44,7 @@ unsigned char scancodesCapsShift[128] =
 	0, 0, 0, '+', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
-char shift = 0, caps = 0, alt = 0, control = 0;
-char lastKey = 0;
+char shift = 0, caps = 0, alt = 0, control = 0, lastKey = 0;
 
 static void Handler(struct regs *r)
 {

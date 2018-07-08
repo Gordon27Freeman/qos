@@ -14,13 +14,13 @@
 extern "C" void init(multiboot_header *multiboot, unsigned int magic)
 {
 	if (magic != MULTIBOOT_BOOTLOADER_MAGIC) asm volatile("cli; hlt;");
+	Graphics::Init(multiboot->framebuffer_addr);
 	GDT::Init();
 	IDT::Init();
 	ISR::Init();
 	IRQ::Init();
+	Keyboard::Init();
 	Timer::Init();
 	Mouse::Init();
-	Keyboard::Init();
 	Memory::Init(multiboot->mem_upper);
-	Graphics::Init(multiboot->framebuffer_addr);
 }

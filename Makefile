@@ -4,8 +4,8 @@ CC	= $(ARCH)-elf-g++
 LD	= $(ARCH)-elf-gcc
 AS	= nasm
 
-CCFLAGS	= -D ARCH_$(ARCH) -ffreestanding -fno-exceptions -fno-rtti -O2 $(CINCLUDES) $(CWARNINGS)
-LDFLAGS	= -T src/$(ARCH)/link.ld -ffreestanding -O2 -nostdlib -lgcc
+CCFLAGS	= -D ARCH_$(ARCH) -ffreestanding -fno-exceptions -fno-rtti -O3 $(CINCLUDES) $(CWARNINGS)
+LDFLAGS	= -T src/$(ARCH)/link.ld -ffreestanding -O3 -nostdlib -lgcc
 ASFLAGS = -f elf
 
 CINCLUDES	= -Iinclude/ -Iinclude/$(ARCH)
@@ -41,7 +41,7 @@ $(KERNEL): $(ASOURCES) $(CSOURCES) $(AOBJECTS) $(COBJECTS)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 qemu: $(ISO)
-	qemu-system-i386 -cdrom $(ISO)
+	qemu-system-i386 -cdrom $(ISO) -m 16
 
 clean:
 	rm -f $(ISO)
