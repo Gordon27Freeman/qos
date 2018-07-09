@@ -105,12 +105,13 @@ struct Window
 	int px, py, pw, ph;
 	char c, s;
 	int cx, cy;
+	char resizable;
 	struct Control *controls;
 	int controlCount;
 	unsigned int uid;
 };
 
-struct Window desktop[0x34];
+struct Window desktop[34];
 static int windowCount = 0;
 static int lastUID = 1;
 static int changeActive = 0;
@@ -140,6 +141,12 @@ static void DrawControls(struct Window window)
 			break;
 		case CONTROL_TEXTBOX:
 			Controls::DrawTextBox(framebuffer, 800, 600, window.controls[i].pointer, window.x, window.y);
+			break;
+		case CONTROL_CHECKBOX:
+			Controls::DrawCheckBox(framebuffer, 800, 600, window.controls[i].pointer, window.x, window.y);
+			break;
+		case CONTROL_RADIO:
+			Controls::DrawRadioButton(framebuffer, 800, 600, window.controls[i].pointer, window.x, window.y);
 			break;
 		}
 	}
@@ -346,74 +353,40 @@ static void DrawMouse()
 	}
 }
 
+static void MoveWindow(Window *dest, Window *src)
+{
+	dest->title = src->title;
+	dest->x = src->x;
+	dest->y = src->y;
+	dest->w = src->w;
+	dest->h = src->h;
+	dest->s = src->s;
+	dest->px = src->px;
+	dest->py = src->py;
+	dest->pw = src->pw;
+	dest->ph = src->ph;
+	dest->resizable = src->resizable;
+	dest->uid = src->uid;
+	dest->controls = src->controls;
+	dest->controlCount = src->controlCount;
+}
+
 static void MoveToZero(int n)
 {
 	struct Window win;
-	win.title = desktop[n].title;
-	win.x = desktop[n].x;
-	win.y = desktop[n].y;
-	win.w = desktop[n].w;
-	win.h = desktop[n].h;
-	win.s = desktop[n].s;
-	win.uid = desktop[n].uid;
-	win.controls = desktop[n].controls;
-	win.controlCount = desktop[n].controlCount;
+	MoveWindow(&win, &desktop[n]);
 	for(int i = n; i > 0; i--)
-	{
-		desktop[i].title = desktop[i - 1].title;
-		desktop[i].x = desktop[i - 1].x;
-		desktop[i].y = desktop[i - 1].y;
-		desktop[i].w = desktop[i - 1].w;
-		desktop[i].h = desktop[i - 1].h;
-		desktop[i].s = desktop[i - 1].s;
-		desktop[i].uid = desktop[i - 1].uid;
-		desktop[i].controls = desktop[i - 1].controls;
-		desktop[i].controlCount = desktop[i - 1].controlCount;
-	}
-	desktop[0].title = win.title;
-	desktop[0].x = win.x;
-	desktop[0].y = win.y;
-	desktop[0].w = win.w;
-	desktop[0].h = win.h;
-	desktop[0].s = win.s;
-	desktop[0].uid = win.uid;
-	desktop[0].controls = win.controls;
-	desktop[0].controlCount = win.controlCount;
+		MoveWindow(&desktop[i], &desktop[i - 1]);
+	MoveWindow(&desktop[0], &win);
 }
 
 static void MoveToEnd()
 {
 	struct Window win;
-	win.title = desktop[0].title;
-	win.x = desktop[0].x;
-	win.y = desktop[0].y;
-	win.w = desktop[0].w;
-	win.h = desktop[0].h;
-	win.s = desktop[0].s;
-	win.uid = desktop[0].uid;
-	win.controls = desktop[0].controls;
-	win.controlCount = desktop[0].controlCount;
+	MoveWindow(&win, &desktop[0]);
 	for(int i = 0; i < windowCount; i++)
-	{
-		desktop[i].title = desktop[i + 1].title;
-		desktop[i].x = desktop[i + 1].x;
-		desktop[i].y = desktop[i + 1].y;
-		desktop[i].w = desktop[i + 1].w;
-		desktop[i].h = desktop[i + 1].h;
-		desktop[i].s = desktop[i + 1].s;
-		desktop[i].uid = desktop[i + 1].uid;
-		desktop[i].controls = desktop[i + 1].controls;
-		desktop[i].controlCount = desktop[i + 1].controlCount;
-	}
-	desktop[windowCount - 1].title = win.title;
-	desktop[windowCount - 1].x = win.x;
-	desktop[windowCount - 1].y = win.y;
-	desktop[windowCount - 1].w = win.w;
-	desktop[windowCount - 1].h = win.h;
-	desktop[windowCount - 1].s = win.s;
-	desktop[windowCount - 1].uid = win.uid;
-	desktop[windowCount - 1].controls = win.controls;
-	desktop[windowCount - 1].controlCount = win.controlCount;
+		MoveWindow(&desktop[i], &desktop[i + 1]);
+	MoveWindow(&desktop[windowCount - 1], &win);
 }
 
 static void MouseClick()
@@ -480,7 +453,7 @@ static void MouseClick()
 	else
 	{
 		n = 0;
-		while (n < 0x34)
+		while (n < 34)
 		{
 			if (!desktop[n].s)
 			{
@@ -500,25 +473,28 @@ static void MouseClick()
 						}
 						else if (MouseX < (desktop[0].x + desktop[0].w - 21) && MouseX > (desktop[0].x + desktop[0].w - 37) && MouseY < (desktop[0].y + 20))
 						{
-							if (desktop[0].w != 800 && desktop[0].h != 575)
+							if (desktop[0].resizable)
 							{
-								desktop[0].pw = desktop[0].w;
-								desktop[0].ph = desktop[0].h;
-								desktop[0].px = desktop[0].x;
-								desktop[0].py = desktop[0].y;
-								desktop[0].w = 800;
-								desktop[0].h = 575;
-								desktop[0].x = 0;
-								desktop[0].y = 0;
+								if (desktop[0].w != 800 && desktop[0].h != 575)
+								{
+									desktop[0].pw = desktop[0].w;
+									desktop[0].ph = desktop[0].h;
+									desktop[0].px = desktop[0].x;
+									desktop[0].py = desktop[0].y;
+									desktop[0].w = 800;
+									desktop[0].h = 575;
+									desktop[0].x = 0;
+									desktop[0].y = 0;
+								}
+								else
+								{
+									desktop[0].w = desktop[0].pw;
+									desktop[0].h = desktop[0].ph;
+									desktop[0].x = desktop[0].px;
+									desktop[0].y = desktop[0].py;
+								}
+								clickHold = 1;
 							}
-							else
-							{
-								desktop[0].w = desktop[0].pw;
-								desktop[0].h = desktop[0].ph;
-								desktop[0].x = desktop[0].px;
-								desktop[0].y = desktop[0].py;
-							}
-							clickHold = 1;
 							break;
 						}
 						else if (MouseX < (desktop[0].x + desktop[0].w - 38) && MouseX > (desktop[0].x + desktop[0].w - 55) && MouseY < (desktop[0].y + 20))
@@ -545,6 +521,12 @@ static void MouseClick()
 								break;
 							case CONTROL_TEXTBOX:
 								Controls::ClickTextBox(desktop[0].controls[i].pointer, MouseX - desktop[0].x - 4, MouseY - desktop[0].y - 24);
+								break;
+							case CONTROL_CHECKBOX:
+								Controls::ClickCheckBox(desktop[0].controls[i].pointer, MouseX - desktop[0].x - 4, MouseY - desktop[0].y - 24);
+								break;
+							case CONTROL_RADIO:
+								Controls::ClickRadioButton(desktop[0].controls[i].pointer, MouseX - desktop[0].x - 4, MouseY - desktop[0].y - 24);
 								break;
 							}
 						}
@@ -604,33 +586,28 @@ void GUI::Update()
 			case CONTROL_BUTTON:
 				Controls::ReleaseButton(desktop[0].controls[i].pointer, MouseX - desktop[0].x - 4, MouseY - desktop[0].y - 24);
 				break;
+			case CONTROL_CHECKBOX:
+				Controls::ReleaseCheckBox(desktop[0].controls[i].pointer, MouseX - desktop[0].x - 4, MouseY - desktop[0].y - 24);
+				break;
 			}
 		}
 	}
 	if(!Mouse::GetLeft() && changeActive) changeActive = 0;
 }
 
-unsigned int GUI::CreateWindow(const char *title, int x, int y, int w, int h)
+unsigned int GUI::CreateWindow(const char *title, int x, int y, int w, int h, int resizable)
 {
-	if (windowCount > 34) return 0;
+	if (windowCount == 34) return 0;
 	for(int i = windowCount; i > 0; i--)
-	{
-		desktop[i].title = desktop[i - 1].title;
-		desktop[i].x = desktop[i - 1].x;
-		desktop[i].y = desktop[i - 1].y;
-		desktop[i].w = desktop[i - 1].w;
-		desktop[i].h = desktop[i - 1].h;
-		desktop[i].s = desktop[i - 1].s;
-		desktop[i].uid = desktop[i - 1].uid;
-		desktop[i].controls = desktop[i - 1].controls;
-		desktop[i].controlCount = desktop[i - 1].controlCount;
-	}
+		MoveWindow(&desktop[i], &desktop[i - 1]);
+
 	desktop[0].title = title;
 	desktop[0].x = x;
 	desktop[0].y = y;
 	desktop[0].w = w + 4;
 	desktop[0].h = h + 24;
 	desktop[0].s = 0;
+	desktop[0].resizable = resizable;
 	desktop[0].controls = (struct Control *)Memory::Alloc(sizeof(struct Control) * 1024);
 	desktop[0].controlCount = 0;
 	desktop[0].uid = lastUID;
@@ -656,6 +633,12 @@ void *GUI::AddControl(unsigned int win, char type)
 			case CONTROL_TEXTBOX:
 				desktop[i].controls[desktop[i].controlCount].pointer = Controls::CreateTextBox("TextBox", 0, 0, 64, 20);
 				break;
+			case CONTROL_CHECKBOX:
+				desktop[i].controls[desktop[i].controlCount].pointer = Controls::CreateCheckBox("CheckBox", 0, 0);
+				break;
+			case CONTROL_RADIO:
+				desktop[i].controls[desktop[i].controlCount].pointer = Controls::CreateRadioButton("RadioButton", 0, 0);
+				break;
 			}
 			desktop[i].controls[desktop[i].controlCount].type = type;
 			desktop[i].controlCount++;
@@ -679,21 +662,17 @@ void GUI::DestroyWindow()
 		case CONTROL_TEXTBOX:
 			Controls::DestroyTextBox(desktop[0].controls[i].pointer);
 			break;
+		case CONTROL_CHECKBOX:
+			Controls::DestroyCheckBox(desktop[0].controls[i].pointer);
+			break;
+		case CONTROL_RADIO:
+			Controls::DestroyRadioButton(desktop[0].controls[i].pointer);
+			break;
 		}
 	}
 	Memory::Free((void *)desktop[0].controls);
 	Memory::Free((void *)desktop[0].title);
 	for (int i = 0; i < windowCount; i++)
-	{
-		desktop[i].title = desktop[i + 1].title;
-		desktop[i].x = desktop[i + 1].x;
-		desktop[i].y = desktop[i + 1].y;
-		desktop[i].w = desktop[i + 1].w;
-		desktop[i].h = desktop[i + 1].h;
-		desktop[i].s = desktop[i + 1].s;
-		desktop[i].uid = desktop[i + 1].uid;
-		desktop[i].controls = desktop[i + 1].controls;
-		desktop[i].controlCount = desktop[i + 1].controlCount;
-	}
+		MoveWindow(&desktop[i], &desktop[i + 1]);
 	windowCount--;
 }

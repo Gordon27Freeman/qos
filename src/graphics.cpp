@@ -39,6 +39,74 @@ void Graphics::Line(unsigned int *buffer, int bw, int bh, int x0, int y0, int x1
 	if (x0 >= 0 && y0 >= 0 && x0 < bw && y0 < bh) buffer[x0 + y0 * bw] = color;
 }
 
+void Graphics::Circle(unsigned int *buffer, int bw, int bh, int x0, int y0, int r, unsigned int color)
+{
+	int x = r - 1;
+	int y = 0;
+	int dx = 1;
+	int dy = 1;
+	int err = dx - (r << 1);
+
+	while (x >= y)
+	{
+		if ((x0 + x) >= 0 && (y0 + y) >= 0 && (x0 + x) < bw && (y0 + y) < bh) buffer[(x0 + x) + (y0 + y) * bw] = color;
+		if ((x0 + y) >= 0 && (y0 + x) >= 0 && (x0 + y) < bw && (y0 + x) < bh) buffer[(x0 + y) + (y0 + x) * bw] = color;
+		if ((x0 - y) >= 0 && (y0 + x) >= 0 && (x0 - y) < bw && (y0 + x) < bh) buffer[(x0 - y) + (y0 + x) * bw] = color;
+		if ((x0 - x) >= 0 && (y0 + y) >= 0 && (x0 - x) < bw && (y0 + y) < bh) buffer[(x0 - x) + (y0 + y) * bw] = color;
+		if ((x0 - x) >= 0 && (y0 - y) >= 0 && (x0 - x) < bw && (y0 - y) < bh) buffer[(x0 - x) + (y0 - y) * bw] = color;
+		if ((x0 - y) >= 0 && (y0 - x) >= 0 && (x0 - y) < bw && (y0 - x) < bh) buffer[(x0 - y) + (y0 - x) * bw] = color;
+		if ((x0 + y) >= 0 && (y0 - x) >= 0 && (x0 + y) < bw && (y0 - x) < bh) buffer[(x0 + y) + (y0 - x) * bw] = color;
+		if ((x0 + x) >= 0 && (y0 - y) >= 0 && (x0 + x) < bw && (y0 - y) < bh) buffer[(x0 + x) + (y0 - y) * bw] = color;
+
+		if (err <= 0)
+		{
+			y++;
+			err += dy;
+			dy += 2;
+		}
+        
+		if (err > 0)
+		{
+			x--;
+			dx += 2;
+			err += dx - (r << 1);
+		}
+	}
+}
+
+void Graphics::FillCircle(unsigned int *buffer, int bw, int bh, int x0, int y0, int r, unsigned int color)
+{
+	int x = r;
+    int y = 0;
+    int xChange = 1 - (r << 1);
+    int yChange = 0;
+    int radiusError = 0;
+
+    while (x >= y)
+    {
+        for (int i = x0 - x; i <= x0 + x; i++)
+        {
+            if (i >= 0 && (y0 + y) >= 0 && i < bw && (y0 + y) < bh) buffer[i + (y0 + y) * bw] = color;
+            if (i >= 0 && (y0 - y) >= 0 && i < bw && (y0 - y) < bh) buffer[i + (y0 - y) * bw] = color;
+        }
+        for (int i = x0 - y; i <= x0 + y; i++)
+        {
+            if (i >= 0 && (y0 + x) >= 0 && i < bw && (y0 + x) < bh) buffer[i + (y0 + x) * bw] = color;
+            if (i >= 0 && (y0 - x) >= 0 && i < bw && (y0 - x) < bh) buffer[i + (y0 - x) * bw] = color;
+        }
+
+        y++;
+        radiusError += yChange;
+        yChange += 2;
+        if (((radiusError << 1) + xChange) > 0)
+        {
+            x--;
+            radiusError += xChange;
+            xChange += 2;
+        }
+    }
+}
+
 void Graphics::HorizontalLine(unsigned int *buffer, int bw, int bh, int x, int y, int length, unsigned int color)
 {
 	int cx = x, l = x + length;

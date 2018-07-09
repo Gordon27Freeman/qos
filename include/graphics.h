@@ -5,6 +5,8 @@ namespace Graphics
 {
 	void Init(unsigned long long addr);
 	void Line(unsigned int *buffer, int bw, int bh, int x0, int y0, int x1, int y1, unsigned int color);
+	void Circle(unsigned int *buffer, int bw, int bh, int x0, int y0, int r, unsigned int color);
+	void FillCircle(unsigned int *buffer, int bw, int bh, int x0, int y0, int r, unsigned int color);
 	void HorizontalLine(unsigned int *buffer, int bw, int bh, int x, int y, int length, unsigned int color);
 	void VerticalLine(unsigned int *buffer, int bw, int bh, int x, int y, int length, unsigned int color);
 	void Rect(unsigned int *buffer, int bw, int bh, int x, int y, int w, int h, unsigned int color);

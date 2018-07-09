@@ -11,6 +11,8 @@ unsigned int *Controls::CreateLabel(char *text, int x, int y)
 	lbl->text = text;
 	lbl->x = x;
 	lbl->y = y;
+	lbl->active = 1;
+	lbl->visible = 1;
 	return (unsigned int *)lbl;
 }
 
@@ -36,6 +38,8 @@ unsigned int *Controls::CreateButton(char *label, int x, int y, int w, int h)
 	btn->y = y;
 	btn->w = w;
 	btn->h = h;
+	btn->active = 1;
+	btn->visible = 1;
 	return (unsigned int *)btn;
 }
 
@@ -91,7 +95,7 @@ void Controls::ClickButton(unsigned int *button, int x, int y)
 void Controls::ReleaseButton(unsigned int *button, int x, int y)
 {
 	struct Button *btn = (struct Button *)button;
-	if (x >= btn->x && x <= btn->x + btn->w && y >= btn->y && y <= btn->y + btn->h)
+	if (btn->active)
 	{
 		btn->pressed = 0;
 		btn->lastPressed = 0;
@@ -108,6 +112,8 @@ unsigned int *Controls::CreateTextBox(char *text, int x, int y, int w, int h)
 	txt->y = y;
 	txt->w = w;
 	txt->h = h;
+	txt->active = 1;
+	txt->visible = 1;
 	return (unsigned int *)txt;
 }
 
@@ -125,6 +131,7 @@ void Controls::DrawTextBox(unsigned int *buffer, int bw, int bh, unsigned int *t
 	int color;
 	if (txt->active) color = 0xffffff;
 	else color = 0xb0a090;
+
 	if (txt->visible)
 	{
 		char *ptr;
@@ -165,5 +172,135 @@ void Controls::KeyPressTextBox(unsigned int *textbox, char c)
 			txt->text[txt->length] = c;
 			txt->length++;
 		}
+	}
+}
+
+unsigned int *Controls::CreateCheckBox(char *label, int x, int y)
+{
+	struct CheckBox *chk = (struct CheckBox *)Memory::Alloc(sizeof(struct CheckBox));
+	chk->label = label;
+	chk->x = x;
+	chk->y = y;
+	chk->active = 1;
+	chk->visible = 1;
+	return (unsigned int *)chk;
+}
+
+void Controls::DestroyCheckBox(unsigned int *checkbox)
+{
+	struct CheckBox *chk = (struct CheckBox *)checkbox;
+	Memory::Free((void *)chk);
+}
+
+void Controls::DrawCheckBox(unsigned int *buffer, int bw, int bh, unsigned int *checkbox, int x, int y)
+{
+	struct CheckBox *chk = (struct CheckBox *)checkbox;
+
+	int color;
+	if (chk->active) color = 0xffffff;
+	else color = 0xb0a090;
+
+	if (chk->visible)
+	{
+		Graphics::FillRect(buffer, bw, bh, x + chk->x + 8, y + chk->y + 28, 11, 11, color);
+		Graphics::HorizontalLine(buffer, bw, bh, x + chk->x + 8, y + chk->y + 28, 11, 0x907060);
+		Graphics::VerticalLine(buffer, bw, bh, x + chk->x + 8, y + chk->y + 28, 11, 0x907060);
+		Graphics::HorizontalLine(buffer, bw, bh, x + chk->x + 8, y + chk->y + 39, 12, 0xf0c0b0);
+		Graphics::VerticalLine(buffer, bw, bh, x + chk->x + 19, y + chk->y + 28, 12, 0xf0c0b0);
+		Graphics::DrawString(buffer, bw, bh, chk->label, x + chk->x + 24, y + chk->y + 27, 0x101010);
+
+		if (chk->checked)
+		{
+			Graphics::Line(buffer, bw, bh, x + chk->x + 17, y + chk->y + 30, x + chk->x + 13, y + chk->y + 38, 0x101010);
+			Graphics::Line(buffer, bw, bh, x + chk->x + 18, y + chk->y + 30, x + chk->x + 14, y + chk->y + 38, 0x101010);
+			Graphics::Line(buffer, bw, bh, x + chk->x + 9, y + chk->y + 34, x + chk->x + 13, y + chk->y + 38, 0x101010);
+			Graphics::Line(buffer, bw, bh, x + chk->x + 10, y + chk->y + 34, x + chk->x + 14, y + chk->y + 38, 0x101010);
+		}
+	}
+}
+
+void Controls::ClickCheckBox(unsigned int *checkbox, int x, int y)
+{
+	struct CheckBox *chk = (struct CheckBox *)checkbox;
+	if (x >= chk->x + 4 && x <= chk->x + 16 && y >= chk->y + 4 && y <= chk->y + 16)
+	{
+		if (!chk->lastPressed && chk->active)
+		{
+			if (!chk->checked) chk->checked = 1;
+			else chk->checked = 0;
+			chk->lastPressed = 1;
+		}
+	}
+}
+
+void Controls::ReleaseCheckBox(unsigned int *checkbox, int x, int y)
+{
+	struct CheckBox *chk = (struct CheckBox *)checkbox;
+	if (chk->active) chk->lastPressed = 0;
+}
+
+char chanels[0xff];
+char btnCount[0xff];
+
+unsigned int *Controls::CreateRadioButton(char *label, int x, int y)
+{
+	struct RadioButton *rad = (struct RadioButton *)Memory::Alloc(sizeof(struct RadioButton));
+	rad->label = label;
+	rad->x = x;
+	rad->y = y;
+	rad->active = 1;
+	rad->visible = 1;
+	btnCount[0]++;
+	return (unsigned int *)rad;
+}
+
+void Controls::DestroyRadioButton(unsigned int *radio)
+{
+	struct RadioButton *rad = (struct RadioButton *)radio;
+	btnCount[rad->chanel]--;
+	Memory::Free((void *)rad);
+}
+
+void Controls::DrawRadioButton(unsigned int *buffer, int bw, int bh, unsigned int *radio, int x, int y)
+{
+	struct RadioButton *rad = (struct RadioButton *)radio;
+
+	if (chanels[rad->chanel] && !rad->init)
+	{
+		rad->marked = 0;
+		chanels[rad->chanel]--;
+	}
+	else if (chanels[rad->chanel] && rad->init) chanels[rad->chanel]--;
+	else rad->init = 0;
+
+	if (rad->chanel != rad->lastChanel)
+	{
+		btnCount[rad->lastChanel]--;
+		btnCount[rad->chanel]++;
+		rad->lastChanel = rad->chanel;
+	}
+
+	int color;
+	if (rad->active) color = 0xffffff;
+	else color = 0xb0a090;
+
+	if (rad->visible)
+	{
+		Graphics::FillCircle(buffer, bw, bh, x + rad->x + 13, y + rad->y + 33, 5, color);
+		Graphics::Circle(buffer, bw, bh, x + rad->x + 13, y + rad->y + 33, 6, 0x101010);
+		Graphics::DrawString(buffer, bw, bh, rad->label, x + rad->x + 24, y + rad->y + 27, 0x101010);
+		if (rad->marked) Graphics::FillCircle(buffer, bw, bh, x + rad->x + 13, y + rad->y + 33, 2, 0x101010);
+	}
+}
+
+void Controls::ClickRadioButton(unsigned int *radio, int x, int y)
+{
+	struct RadioButton *rad = (struct RadioButton *)radio;
+
+	if (x >= rad->x + 4 && x <= rad->x + 16 && y >= rad->y + 4 && y <= rad->y + 16)
+	{
+		rad->marked = 1;
+		chanels[rad->chanel] = btnCount[rad->chanel];
+		rad->init = 1;
 	}
 }

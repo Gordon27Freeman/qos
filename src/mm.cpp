@@ -16,7 +16,7 @@ struct Allocation
 	short prev;
 };
 
-static struct Allocation memoryMap[1024];
+static struct Allocation memoryMap[100000];
 static unsigned int freeMemory;
 
 void Memory::Init(unsigned int totalMemory)
@@ -26,7 +26,7 @@ void Memory::Init(unsigned int totalMemory)
 	memoryMap[0].size = freeMemory;
 	memoryMap[0].type = FREE;
 	int i = 1;
-	while (i < 1024)
+	while (i < 100000)
 	{
 		memoryMap[i].type = UNUSED;
 		i++;
@@ -35,17 +35,17 @@ void Memory::Init(unsigned int totalMemory)
 
 void *Memory::Alloc(size_t size)
 {
-	int n = 1024, f = 0;
+	int n = 100000, f = 0;
 	while (n >= 0)
 	{
 		if (memoryMap[n].type == FREE && memoryMap[n].size >= size)
 		{
-			while (f < 1024)
+			while (f < 100000)
 			{
 				if (memoryMap[f].type == UNUSED) break;
 				f++;
 			}
-			if (f == 1023) return 0;
+			if (f == 99999) return 0;
 			memoryMap[f].addr = memoryMap[n].addr;
 			memoryMap[f].size = size;
 			memoryMap[f].next = n;
@@ -64,7 +64,7 @@ void *Memory::Alloc(size_t size)
 void Memory::Free(void *obj)
 {
 	int n = 0;
-	while (n < 1024)
+	while (n < 100000)
 	{
 		if ((int)memoryMap[n].addr == (int)obj)
 		{
