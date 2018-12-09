@@ -152,7 +152,7 @@ void Graphics::FillRect(unsigned int *buffer, int bw, int bh, int x, int y, int 
 
 void Graphics::DrawFullscreenBuffer(unsigned int *buffer)
 {
-	memcpy((void *)&framebuffer[0], (void *)&buffer[0], 800 * 600 * 4);
+	memcpy((void *)&framebuffer[0], (void *)&buffer[0], 1024 * 768 * 4);
 }
 
 void Graphics::DrawChar(unsigned int *buffer, int bw, int bh, char c, int x, int y, unsigned int color)

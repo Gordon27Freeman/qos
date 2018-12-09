@@ -5,7 +5,7 @@
 
 using namespace Mouse;
 
-static int MouseX = 400, MouseY = 300, MousePrevX = MouseX, MousePrevY = MouseY;
+static int MouseX = 512, MouseY = 384, MousePrevX = MouseX, MousePrevY = MouseY;
 static char Cycle = 0, Byte[3];
 
 static char LeftButton = 0, RightButton = 0;
@@ -37,8 +37,8 @@ static void Handler(struct regs *r)
 	MouseX += AccX;
 	MouseY += AccY;
 
-	if (MouseX >= 800) MouseX = 799;
-	if (MouseY >= 600) MouseY = 599;
+	if (MouseX >= 1024) MouseX = 1023;
+	if (MouseY >= 768) MouseY = 767;
 	if (MouseX < 0) MouseX = 0;
 	if (MouseY < 0) MouseY = 0;
 

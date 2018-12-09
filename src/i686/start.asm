@@ -10,7 +10,7 @@ section .multiboot
 	dd FLAGS
 	dd CHECKSUM
 	dd 0, 0, 0, 0, 0
-	dd 0, 800, 600, 32
+	dd 0, 1024, 768, 32
 
 section .text
 start:
