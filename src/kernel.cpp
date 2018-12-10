@@ -7,6 +7,7 @@ int wx = 200, wy = 200;
 struct TextBox *txt, *txt2;
 struct CheckBox *chk;
 
+// every time create window button pressed creates window in new position
 void CreateWindowFunc()
 {
 	char *title = (char *)Memory::Alloc(1024);
@@ -24,6 +25,7 @@ void CreateWindowFunc()
 
 extern "C" void kmain()
 {
+	// create window to test some features
 	window win1 = GUI::CreateWindow("QuantumOS", 80, 60, 172, 100, 0);
 	
 	chk = (struct CheckBox *)GUI::AddControl(win1, CONTROL_CHECKBOX);
@@ -62,5 +64,6 @@ extern "C" void kmain()
 	btn->y = 48;
 	btn->onClick = CreateWindowFunc;
 
+	// main kernel loop
 	while (1) GUI::Update();
 }

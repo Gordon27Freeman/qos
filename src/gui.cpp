@@ -13,6 +13,7 @@
 
 using namespace GUI;
 
+// cursor bitmap nothing special
 static unsigned int Cursor[11 * 19] =
 {
 	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -36,6 +37,7 @@ static unsigned int Cursor[11 * 19] =
 	0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0
 };
 
+// define some colors to create some basic icons
 #define BLUE 0x00105090
 #define ALPH 0xff000000
 #define BLUE1 0x001c338a
@@ -51,6 +53,7 @@ static unsigned int Cursor[11 * 19] =
 #define BLACK 0x00101010
 #define ALPHA 0xff000000
 
+// default window icon
 static unsigned int WindowIcon[16 * 16] =
 {
 	ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,
@@ -71,6 +74,7 @@ static unsigned int WindowIcon[16 * 16] =
 	ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA,ALPHA
 };
 
+// icon for start menu
 static unsigned int QIcon[16 * 16] = 
 {
 	ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,ALPH,
@@ -111,7 +115,10 @@ struct Window
 	unsigned int uid;
 };
 
-struct Window desktop[34];
+// we dont need more than 45 windows
+// it hurts to display all of them
+// also window list cant display more ¯\_(ツ)_/¯
+struct Window desktop[45];
 static int windowCount = 0;
 static int lastUID = 1;
 static int changeActive = 0;
@@ -163,6 +170,7 @@ static void DrawWindow(struct Window window, char n)
 		endColor = 0x10c0c0;
 	}
 
+	// forgot what each function draws but it doesnt matter at all
 	Graphics::FillRect(framebuffer, 1024, 768, window.x + 0, window.y + 0, window.w - 1, window.h - 1, 0xb0a090);
 	Graphics::HorizontalGradient(framebuffer, 1024, 768, window.x + 2, window.y + 2, window.w - 4, 19, startColor, endColor);
 
@@ -198,6 +206,7 @@ static void DrawWindow(struct Window window, char n)
 	Graphics::Line(framebuffer, 1024, 768, window.x + window.w - 15, window.y + 8, window.x + window.w - 9, window.y + 14, 0x000000);
 	Graphics::Line(framebuffer, 1024, 768, window.x + window.w - 9, window.y + 8, window.x + window.w - 15, window.y + 14, 0x000000);
 
+	// cut window title to fit its size
 	strcpy(title, window.title);
 	if (strlen(window.title) > ((window.w - 80) / 8))
 	{
@@ -216,19 +225,20 @@ static void DrawList()
 {
 	for(int i = 6; i < windowCount; i++)
 	{
-		if (i > 34) break;
+		if (i > 45) break;
 		int rightBottom = 0x907060;
 		int leftTop = 0xf0c0b0;
 		int color = 0xb0a090;
 
+		// cut window title to fit button size in window list
 		strcpy(title, desktop[i].title);
-		if (strlen(desktop[i].title) > 12)
+		if (strlen(desktop[i].title) > 15)
 		{
 			
-			title[9] = '.';
-			title[10] = '.';
-			title[11] = '.';
-			title[12] = 0;
+			title[12] = '.';
+			title[13] = '.';
+			title[14] = '.';
+			title[15] = 0;
 		}
 
 		Graphics::FillRect(framebuffer, 1024, 768, 875, 743 - (i - 5) * 19, 146, 19, color);
@@ -243,6 +253,7 @@ static void DrawList()
 
 static void DrawTaskbar()
 {
+	// this draws start menu button
 	Graphics::FillRect(framebuffer, 1024, 768, 0, 744, 1024, 24, 0xb0a090);
 	Graphics::HorizontalLine(framebuffer, 1024, 768, 0, 745, 1024, 0xf0c0b0);
 
@@ -254,6 +265,7 @@ static void DrawTaskbar()
 	Graphics::DrawString(framebuffer, 1024, 768, "Menu", 24, 750, 0x101010);
 	DrawIcon(framebuffer, 1024, 768, QIcon, 4, 749);
 
+	// this draws time in the right bottom place of screen
 	unsigned char hour = 0, minute = 0, second = 0;
 	Time::GetTime(&hour, &minute, &second);
 	char h[3], m[3];
@@ -277,6 +289,8 @@ static void DrawTaskbar()
 	Graphics::HorizontalLine(framebuffer, 1024, 768, 975, 765, 47, 0xf0c0b0);
 	Graphics::VerticalLine(framebuffer, 1024, 768, 1021, 747, 19, 0xf0c0b0);
 
+	// 6 window buttons fits into entire taskbar
+	// if more draw button to open window list
 	if (windowCount > 6)
 	{
 		Graphics::HorizontalLine(framebuffer, 1024, 768, 961, 747, 10, 0xf0c0b0);
@@ -315,6 +329,7 @@ static void DrawTaskbar()
 			title[15] = 0;
 		}
 
+		// this draws window buttons
 		Graphics::FillRect(framebuffer, 1024, 768, 68 + 149 * i, 747, 146, 19, color);
 		Graphics::HorizontalLine(framebuffer, 1024, 768, 68 + 149 * i, 747, 146, leftTop);
 		Graphics::VerticalLine(framebuffer, 1024, 768, 68 + 149 * i, 747, 19, leftTop);
@@ -352,6 +367,7 @@ static void DrawMouse()
 	}
 }
 
+// we need to move windows though window array so use this to simplify code
 static void MoveWindow(Window *dest, Window *src)
 {
 	dest->title = src->title;
@@ -370,6 +386,7 @@ static void MoveWindow(Window *dest, Window *src)
 	dest->controlCount = src->controlCount;
 }
 
+// more useful functions
 static void MoveToZero(int n)
 {
 	struct Window win;
@@ -388,15 +405,18 @@ static void MoveToEnd()
 	MoveWindow(&desktop[windowCount - 1], &win);
 }
 
+// this is where the most of gui work comes
 static void MouseClick()
 {
 	int MouseY = Mouse::GetY();
 	int MouseX = Mouse::GetX();
 	int n = (MouseX - 67) / 149;
 	int winMax;
+	// set number of window buttons on taskbar
 	if (windowCount < 7) winMax = windowCount;
 	else winMax = 6;
 
+	// if opened window list check if list buttons was pressed
 	if (listShown && !changeActive)
 	{
 		if (MouseX > 875 && MouseX < 1020 && MouseY > (743 - (windowCount - 6) * 19) && MouseY < 743)
@@ -408,6 +428,7 @@ static void MouseClick()
 		}
 	}
 
+	// if moving window
 	if (desktop[0].c == 1)
 	{
 		desktop[0].x += MouseX - desktop[0].cx;
@@ -415,6 +436,7 @@ static void MouseClick()
 		desktop[0].cx = MouseX;
 		desktop[0].cy = MouseY;
 	}
+	// if resizing window
 	if (desktop[0].r == 1)
 	{
 		desktop[0].w += MouseX - desktop[0].rx;
@@ -424,8 +446,10 @@ static void MouseClick()
 		if (desktop[0].w < 100) desktop[0].w = 100;
 		if (desktop[0].h < 24) desktop[0].h = 24;
 	}
+	// clicks on taskbar
 	else if (MouseY > 748 && !changeActive)
 	{
+		// if windows button was pressed move it on top of desktop
 		if (MouseX > 68 && n < winMax)
 		{
 			if (n && !desktop[n].s)
@@ -448,6 +472,7 @@ static void MouseClick()
 			}
 			changeActive = 1;
 		}
+		// open window list
 		else if (MouseX > 961 && MouseX < 972)
 		{
 			if (!changeActive)
@@ -458,18 +483,22 @@ static void MouseClick()
 			changeActive = 1;
 		}
 	}
-	else
+	else // clicking on desktop or windows
 	{
 		n = 0;
-		while (n < 34)
+		// check every window
+		while (n < 45)
 		{
+			// but only if its shown
 			if (!desktop[n].s)
 			{
 				if (MouseX < (desktop[n].x + desktop[n].w) && MouseX > desktop[n].x)
 				{
 					if (MouseY < (desktop[n].y + desktop[n].h) && MouseY > desktop[n].y)
 					{
+						// so we clicked shown window!
 						MoveToZero(n);
+						// close window if clicked close button .-.
 						if (MouseX < (desktop[0].x + desktop[0].w - 4) && MouseX > (desktop[0].x + desktop[0].w - 19) && MouseY < (desktop[0].y + 20))
 						{
 							if (!desktop[0].c)
@@ -479,6 +508,7 @@ static void MouseClick()
 							}
 							break;
 						}
+						// maximize or normalize(?) window if clicked this button oaoaoe mmm
 						else if (MouseX < (desktop[0].x + desktop[0].w - 21) && MouseX > (desktop[0].x + desktop[0].w - 37) && MouseY < (desktop[0].y + 20))
 						{
 							if (desktop[0].resizable)
@@ -505,6 +535,7 @@ static void MouseClick()
 							}
 							break;
 						}
+						// minimize button clicked
 						else if (MouseX < (desktop[0].x + desktop[0].w - 38) && MouseX > (desktop[0].x + desktop[0].w - 55) && MouseY < (desktop[0].y + 20))
 						{
 							desktop[0].s = 1;
@@ -512,6 +543,7 @@ static void MouseClick()
 							clickHold = 1;
 							break;
 						}
+						// if clicked on top of window start dragging it
 						else if (MouseY < (desktop[0].y + 22))
 						{
 							desktop[0].c = 1;
@@ -519,6 +551,7 @@ static void MouseClick()
 							desktop[0].cy = MouseY;
 							break;
 						}
+						// if clicked in the right bottom corner start resizing it
 						else if (MouseX > (desktop[0].x + desktop[0].w - 5) && MouseX < (desktop[0].x + desktop[0].w) && MouseY > (desktop[0].y + desktop[0].h - 5) && MouseY < (desktop[0].y + desktop[0].h))
 						{
 							if (desktop[0].resizable)
@@ -530,6 +563,7 @@ static void MouseClick()
 							break;
 						}
 
+						// in any other case process click event for every window control
 						for (int i = 0; i < desktop[0].controlCount; i++)
 						{
 							switch(desktop[0].controls[i].type)
@@ -560,19 +594,24 @@ static void MouseClick()
 void GUI::Update()
 {
 	int cx = 0;
+	// stylish background
 	while (cx < 1024 * 768)
 	{
 		framebuffer[cx] = 0x108080;
 		cx++;
 	}
 
+	// first draw shown windows in right order
 	for (int i = windowCount; i > 0; i--)
 		if (!desktop[i - 1].s) DrawWindow(desktop[i - 1], i - 1);
 
+	// then draw taskbar and mouse on top of all this shit
 	DrawTaskbar();
 	DrawMouse();
+	// redraw screen
 	Graphics::DrawFullscreenBuffer(framebuffer);
 
+	// process keyboard events for textboxes
 	char c = Keyboard::GetChar();
 	if(c)
 	{
@@ -587,11 +626,12 @@ void GUI::Update()
 		}
 	}
 
+	// update mouse click state to avoid infinitely fast clicking
 	if(Mouse::GetLeft())
 	{
 		if (!clickHold) MouseClick();
 	}
-	else
+	else // need also release event
 	{
 		clickHold = 0;
 		int MouseY = Mouse::GetY();
@@ -611,12 +651,14 @@ void GUI::Update()
 			}
 		}
 	}
+	// need this to process next click only if mouse button was released
 	if(!Mouse::GetLeft() && changeActive) changeActive = 0;
 }
 
 unsigned int GUI::CreateWindow(const char *title, int x, int y, int w, int h, int resizable)
 {
-	if (windowCount == 34) return 0;
+	if (windowCount == 45) return 0;
+	// move new window on top of window array
 	for(int i = windowCount; i > 0; i--)
 		MoveWindow(&desktop[i], &desktop[i - 1]);
 
@@ -629,6 +671,7 @@ unsigned int GUI::CreateWindow(const char *title, int x, int y, int w, int h, in
 	if (desktop[0].h < 24) desktop[0].h = 24;
 	desktop[0].s = 0;
 	desktop[0].resizable = resizable;
+	// allocate some memory to store window controls there
 	desktop[0].controls = (struct Control *)Memory::Alloc(sizeof(struct Control) * 1024);
 	desktop[0].controlCount = 0;
 	desktop[0].uid = lastUID;

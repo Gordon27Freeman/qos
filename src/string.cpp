@@ -5,6 +5,7 @@ void itoa(char *buf, int base, int d)
 	unsigned long ud = d;
 	int divisor = 10;
 
+	// set divisor and sign if base is decimal
 	if(base == 'd' && d < 0)
 	{
 		*p++ = '-';
@@ -13,6 +14,7 @@ void itoa(char *buf, int base, int d)
 	}
 	else if (base == 'x') divisor = 16;
 
+	// process all digits
 	do
 	{
 		int remainder = ud % divisor;
@@ -21,6 +23,7 @@ void itoa(char *buf, int base, int d)
 
 	*p = 0;
 
+	// result needs to be reversed
 	p1 = buf;
 	p2 = p - 1;
 	while (p1 < p2)

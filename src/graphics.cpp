@@ -8,6 +8,7 @@
 
 using namespace Graphics;
 
+// one line in font packed in one byte so we need mask to extract single pixel
 static int mask[8] = { 128, 64, 32, 16, 8, 4, 2, 1 };
 unsigned int *framebuffer;
 extern struct Font VGAFont;
@@ -19,6 +20,7 @@ void Graphics::Init(unsigned long long addr)
 
 void Graphics::Line(unsigned int *buffer, int bw, int bh, int x0, int y0, int x1, int y1, unsigned int color)
 {
+	// bresenham's algorithm
 	int dx, dy;
 	if (x1 >= x0) dx = x1 - x0;
 	else dx = x0 - x1;
@@ -41,6 +43,7 @@ void Graphics::Line(unsigned int *buffer, int bw, int bh, int x0, int y0, int x1
 
 void Graphics::Circle(unsigned int *buffer, int bw, int bh, int x0, int y0, int r, unsigned int color)
 {
+	// have no idea how its working just copied it from rosettacode
 	int x = r - 1;
 	int y = 0;
 	int dx = 1;
@@ -76,6 +79,7 @@ void Graphics::Circle(unsigned int *buffer, int bw, int bh, int x0, int y0, int 
 
 void Graphics::FillCircle(unsigned int *buffer, int bw, int bh, int x0, int y0, int r, unsigned int color)
 {
+	// same as above but using lines to fill space between border pixels
 	int x = r;
     int y = 0;
     int xChange = 1 - (r << 1);
@@ -158,12 +162,14 @@ void Graphics::DrawFullscreenBuffer(unsigned int *buffer)
 void Graphics::DrawChar(unsigned int *buffer, int bw, int bh, char c, int x, int y, unsigned int color)
 {
 	int cx = 0, cy = 0;
+	// calculate character offset in font bitmap
 	unsigned char *glyph = &VGAFont.Bitmap[(c - 31) * 16];
  
 	while(cy < 16 && (y + cy) < bh)
 	{
 		while(cx < 8 && (x + cx) < bw)
 		{
+			// checking x-axis pixels using mask
 			if (glyph[cy] & mask[cx] && (x + cx) >= 0 && (y + cy) >= 0)
 				buffer[(x + cx) + (y + cy) * bw] = color;
 			cx++;
@@ -186,10 +192,12 @@ void Graphics::DrawString(unsigned int *buffer, int bw, int bh, const char *s, i
 
 void Graphics::HorizontalGradient(unsigned int *buffer, int bw, int bh, int x, int y, int w, int h, unsigned int startColor, unsigned int endColor)
 {
+	// calculate difference between two colors for every color chanel
 	float ecb = endColor & 0xFF;
 	float ecg = (endColor >> 8) & 0xFF;
 	float ecr = (endColor >> 16) & 0xFF;
 	int cx = x, cy = y, lx = x + w, ly = y + h;
+	// just move adding or subtracting color every pixel to create smooth gradient
 	while (cy < ly && cy < bh)
 	{
 		float scb = startColor & 0xFF;
@@ -214,6 +222,7 @@ void Graphics::HorizontalGradient(unsigned int *buffer, int bw, int bh, int x, i
 
 void Graphics::VerticalGradient(unsigned int *buffer, int bw, int bh, int x, int y, int w, int h, unsigned int startColor, unsigned int endColor)
 {
+	// same as above but vertical .-.
 	float ecb = endColor & 0xFF;
 	float ecg = (endColor >> 8) & 0xFF;
 	float ecr = (endColor >> 16) & 0xFF;

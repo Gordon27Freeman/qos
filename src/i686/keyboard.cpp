@@ -4,6 +4,7 @@
 #include <irq.h>
 using namespace Keyboard;
 
+// scancode->char tables for every situation
 unsigned char scancodes[128] =
 {
 	0,  27, '1', '2', '3', '4', '5', '6', '7', '8',	'9', '0', '-', '=', '\b',
@@ -51,10 +52,11 @@ static void Handler(struct regs *r)
 	unsigned char scancode;
 	scancode = inb(0x60);
 
+	// key up
 	if (scancode & 0x80)
 	{
 		switch(scancode)
-		{	
+		{
 			case 0xaa: shift = 0; break;
 			case 0xb6: shift = 0; break;
 			case 0x9d: control = 0; break;
@@ -62,7 +64,7 @@ static void Handler(struct regs *r)
 			default: break;
 		}
 	}
-	else
+	else // key down
 	{
 		switch(scancode)
 		{
@@ -76,12 +78,14 @@ static void Handler(struct regs *r)
 			case 0x51: break; case 0x52: break; case 0x53: break;
 			case 0x57: break; case 0x58: break;
 			
+			// special keys
 			case 0x2a: shift = 1; break;
 			case 0x36: shift = 1; break;
 			case 0x1d: control = 1; break;
 			case 0x38: alt = 1; break;
 			case 0x3a: if(!caps) caps = 1; else caps = 0; break;
 			
+			// set pressed key depending on modificators
 			default:
 				if(caps && shift) lastKey = scancodesCapsShift[scancode];
 				else if(shift) lastKey = scancodesShift[scancode];
@@ -101,5 +105,6 @@ char Keyboard::GetChar()
 
 void Keyboard::Init()
 {
+	// enable keyboard interrupt handler
 	IRQ::InstallHandler(1, Handler);
 }

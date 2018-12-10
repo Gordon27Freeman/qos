@@ -14,6 +14,7 @@ static void Handler(struct regs *r)
 {
 	char AccX = 0, AccY = 0;
 
+	// mouse sends 3 packets so proccess it in 3 cycles
 	switch (Cycle)
 	{
 	case 0:
@@ -37,6 +38,7 @@ static void Handler(struct regs *r)
 	MouseX += AccX;
 	MouseY += AccY;
 
+	// check screen bounds
 	if (MouseX >= 1024) MouseX = 1023;
 	if (MouseY >= 768) MouseY = 767;
 	if (MouseX < 0) MouseX = 0;
@@ -48,6 +50,7 @@ static void Handler(struct regs *r)
 
 static inline void Wait(unsigned char type)
 {
+	// works correctly with old ps/2 controllers
 	unsigned int timeout = 100000;
 	if(type == 0)
 	{
@@ -61,6 +64,7 @@ static inline void Wait(unsigned char type)
 	}
 }
 
+// send packet to mouse
 static inline void Write(unsigned char data)
 {
 	Wait(1);
@@ -69,6 +73,7 @@ static inline void Write(unsigned char data)
 	outb(0x60, data);
 }
 
+// get packet from mouse
 static char Read()
 {
 	Wait(0);
@@ -99,6 +104,7 @@ void Mouse::Init()
 {
 	unsigned char status;
 
+	// some mouse initialization magic
 	Wait(1);
 	outb(0x64, 0xA8);
 
@@ -117,5 +123,6 @@ void Mouse::Init()
 	Write(0xF4);
 	Read();
 
+	// enable mouse interrupt handler
 	IRQ::InstallHandler(12, Handler);
 }

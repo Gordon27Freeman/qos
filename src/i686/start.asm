@@ -15,14 +15,18 @@ section .multiboot
 section .text
 start:
 	mov esp, stack
+
+	; put magic number and multiboot header pointer on stack
 	push eax
 	push ebx
 
+	; check if cpu supports sse2
 	mov eax, 0x1
 	cpuid
 	test edx, 1<<25
 	jz .no_sse
 
+	; enable sse2
 	mov eax, cr0
 	and ax, 0xFFFB
 	or ax, 0x2
@@ -43,12 +47,14 @@ start:
 	mov byte [sse_support], 0xf0
 jmp .main
 
+	; hang cpu if kmain returned
 .l:	cli
 	hlt
 jmp .l
 
 sse_support db 0
 
+; reserve 16k for stack
 section .bss
 	resb 0x4000
 stack:

@@ -24,6 +24,7 @@ void Controls::DestroyLabel(unsigned int *label)
 
 void Controls::DrawLabel(unsigned int *buffer, int bw, int bh, unsigned int *label, int x, int y)
 {
+	// its label so basically draw text with color depending on its activity
 	struct Label *lbl = (struct Label *)label;
 	int color;
 	if (lbl->active) color = 0x101010; else color = 0x806050;
@@ -51,12 +52,14 @@ void Controls::DestroyButton(unsigned int *button)
 
 void Controls::DrawButton(unsigned int *buffer, int bw, int bh, unsigned int *button, int x, int y)
 {
+	// button is a bit more complicated
 	struct Button *btn = (struct Button *)button;
 	int rightBottom, leftTop, color, textColor;
 
 	if (btn->active) textColor = 0x101010;
 	else textColor = 0x806050;
 
+	// also need to change color if pressed
 	if (!btn->pressed)
 	{
 		rightBottom = 0x907060;
@@ -70,6 +73,7 @@ void Controls::DrawButton(unsigned int *buffer, int bw, int bh, unsigned int *bu
 		color = 0xa09080;
 	}
 
+	// draw 3d rect with text on it
 	if (btn->visible)
 	{
 		Graphics::FillRect(buffer, bw, bh, x + btn->x + 4, y + btn->y + 24, btn->w, btn->h, color);
@@ -104,6 +108,7 @@ void Controls::ReleaseButton(unsigned int *button, int x, int y)
 
 unsigned int *Controls::CreateTextBox(char *text, int x, int y, int w, int h)
 {
+	// allocate some memory for text in textbox cause it can be changed
 	struct TextBox *txt = (struct TextBox *)Memory::Alloc(sizeof(struct TextBox));
 	txt->text = (char *)Memory::Alloc(65536);
 	strcpy(txt->text, text);
@@ -134,6 +139,7 @@ void Controls::DrawTextBox(unsigned int *buffer, int bw, int bh, unsigned int *t
 
 	if (txt->visible)
 	{
+		// cut text to fit textbox size, draw only its end
 		char *ptr;
 		if (txt->length > (txt->w - 8) / 8) ptr = (char *)&txt->text[txt->length - (txt->w - 8) / 8];
 		else ptr = txt->text;
@@ -149,6 +155,7 @@ void Controls::DrawTextBox(unsigned int *buffer, int bw, int bh, unsigned int *t
 
 void Controls::ClickTextBox(unsigned int *textbox, int x, int y)
 {
+	// set focus on mouse click
 	struct TextBox *txt = (struct TextBox *)textbox;
 	if (x >= txt->x && x <= txt->x + txt->w && y >= txt->y && y <= txt->y + txt->h) txt->focus = 1;
 	else txt->focus = 0;
@@ -156,6 +163,7 @@ void Controls::ClickTextBox(unsigned int *textbox, int x, int y)
 
 void Controls::KeyPressTextBox(unsigned int *textbox, char c)
 {
+	// if in focus add pressed keys to textbox
 	struct TextBox *txt = (struct TextBox *)textbox;
 	if (txt->active && txt->focus)
 	{
@@ -209,6 +217,7 @@ void Controls::DrawCheckBox(unsigned int *buffer, int bw, int bh, unsigned int *
 		Graphics::VerticalLine(buffer, bw, bh, x + chk->x + 19, y + chk->y + 28, 12, 0xf0c0b0);
 		Graphics::DrawString(buffer, bw, bh, chk->label, x + chk->x + 24, y + chk->y + 27, 0x101010);
 
+		// draw cute check mark
 		if (chk->checked)
 		{
 			Graphics::Line(buffer, bw, bh, x + chk->x + 17, y + chk->y + 30, x + chk->x + 13, y + chk->y + 38, 0x101010);
@@ -221,6 +230,7 @@ void Controls::DrawCheckBox(unsigned int *buffer, int bw, int bh, unsigned int *
 
 void Controls::ClickCheckBox(unsigned int *checkbox, int x, int y)
 {
+	// change check status on click
 	struct CheckBox *chk = (struct CheckBox *)checkbox;
 	if (x >= chk->x + 4 && x <= chk->x + 16 && y >= chk->y + 4 && y <= chk->y + 16)
 	{
@@ -239,6 +249,7 @@ void Controls::ReleaseCheckBox(unsigned int *checkbox, int x, int y)
 	if (chk->active) chk->lastPressed = 0;
 }
 
+// only one button on same chanel can be active at one time
 char chanels[0xff];
 char btnCount[0xff];
 
@@ -265,6 +276,7 @@ void Controls::DrawRadioButton(unsigned int *buffer, int bw, int bh, unsigned in
 {
 	struct RadioButton *rad = (struct RadioButton *)radio;
 
+	// draw buttons depending on its state but only after updating it
 	if (chanels[rad->chanel] && !rad->init)
 	{
 		rad->marked = 0;
@@ -297,6 +309,7 @@ void Controls::ClickRadioButton(unsigned int *radio, int x, int y)
 {
 	struct RadioButton *rad = (struct RadioButton *)radio;
 
+	// just change button state, other buttons state will be changed while redrawing
 	if (x >= rad->x + 4 && x <= rad->x + 16 && y >= rad->y + 4 && y <= rad->y + 16)
 	{
 		rad->marked = 1;

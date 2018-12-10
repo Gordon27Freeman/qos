@@ -11,6 +11,7 @@ static void Handler(struct regs *r)
 	current_ticks++;
 }
 
+// set timer interrupt firing rate
 static void SetPhase(int hz)
 {
     int divisor = 1193182 / hz;
@@ -21,6 +22,7 @@ static void SetPhase(int hz)
 
 void Timer::Wait(int ticks)
 {
+	// sleep function
 	unsigned long long eticks = current_ticks + ticks;
 	while (current_ticks < eticks) asm volatile("hlt");
 }
@@ -28,6 +30,8 @@ void Timer::Wait(int ticks)
 void Timer::Init()
 {
 	IRQ::InstallHandler(0, Handler);
+	// 100 hz will be ok
 	SetPhase(100);
+	// need to enable interrupts cause its last init task and everything ready to work
 	asm volatile("sti");
 }
